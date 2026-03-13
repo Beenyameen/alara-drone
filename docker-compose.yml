@@ -1,0 +1,6 @@
+services:
+  broker:
+    build: ./broker
+    ports:
+      - "10000:10000/udp"
+      - "12000:12000/tcp"
