@@ -16,9 +16,11 @@ while True:
 ctx = zmq.Context()
 sub = ctx.socket(zmq.SUB)
 sub.setsockopt(zmq.SUBSCRIBE, b"")
+sub.setsockopt(zmq.RCVHWM, 2)
 sub.connect(f"tcp://{ip}:11000")
 
 pub = ctx.socket(zmq.PUB)
+pub.setsockopt(zmq.SNDHWM, 2)
 pub.bind("tcp://0.0.0.0:12000")
 
 while True:
