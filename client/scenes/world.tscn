@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://bych6mbnf351e"]
+
+[ext_resource type="Script" uid="uid://b7yc8kc5i6fk5" path="res://scripts/World.cs" id="1_nnsk1"]
+[ext_resource type="Script" uid="uid://ccglbfys6yhfq" path="res://scripts/Player.cs" id="2_rwgxs"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_e5uuo"]
+radius = 0.2
+height = 1.7
+
+[node name="World" type="Node3D" unique_id=1147155002]
+script = ExtResource("1_nnsk1")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=217830950]
+script = ExtResource("2_rwgxs")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=932619741]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CapsuleShape3D_e5uuo")
+
+[node name="Camera3D" type="Camera3D" parent="Player" unique_id=40063829]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1600669496]
+transform = Transform3D(-1, 8.742278e-08, 0, -6.181724e-08, -0.70710677, 0.70710677, 6.181724e-08, 0.70710677, 0.70710677, 0, 0, 0)
+shadow_enabled = true

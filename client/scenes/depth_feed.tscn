@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://l46xc8bu4y2"]
+
+[ext_resource type="Script" uid="uid://ceujw8u1pp5vg" path="res://scripts/DepthFeed.cs" id="1_gkd5c"]
+
+[node name="DepthFeed" type="TextureRect" unique_id=284048114]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+script = ExtResource("1_gkd5c")
