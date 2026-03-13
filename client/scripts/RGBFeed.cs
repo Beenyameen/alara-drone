@@ -4,10 +4,7 @@ public partial class RGBFeed : TextureRect
 {
 	public Image Image = Image.CreateEmpty(640, 480, false, Image.Format.Rgb8);
 
-	public override void _Ready()
-	{
-		Texture = ImageTexture.CreateFromImage(Image);
-	}
+	public override void _Ready() => Texture = ImageTexture.CreateFromImage(Image);
 
 	public void UpdateFeed(byte[] data)
 	{

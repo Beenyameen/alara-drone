@@ -17,9 +17,7 @@ public partial class Main : Control
 		AddChild(Rgb = GD.Load<PackedScene>("res://scenes/rgb_feed.tscn").Instantiate<RGBFeed>());
 		AddChild(Depth = GD.Load<PackedScene>("res://scenes/depth_feed.tscn").Instantiate<DepthFeed>());
 		AddChild(World = GD.Load<PackedScene>("res://scenes/world.tscn").Instantiate<Node3D>());
-
 		SwitchScene(Rgb);
-
 		new Thread(() => {
 			using var sub = new SubscriberSocket();
 			sub.Options.ReceiveHighWatermark = 2;
@@ -42,7 +40,6 @@ public partial class Main : Control
 		if (Input.IsActionJustPressed("select_rgb")) SwitchScene(Rgb);
 		if (Input.IsActionJustPressed("select_depth")) SwitchScene(Depth);
 		if (Input.IsActionJustPressed("select_world")) SwitchScene(World);
-
 		if (RgbData != null && Current == Rgb) { Rgb.UpdateFeed(RgbData); RgbData = null; }
 		if (DepthData != null && Current == Depth) { Depth.UpdateFeed(DepthData); DepthData = null; }
 	}
