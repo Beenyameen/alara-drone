@@ -1,15 +1,17 @@
 using Godot;
-using System;
 
 public partial class RGBFeed : TextureRect
 {
-	// Called when the node enters the scene tree for the first time.
+	public Image Image = Image.CreateEmpty(640, 480, false, Image.Format.Rgb8);
+
 	public override void _Ready()
 	{
+		Texture = ImageTexture.CreateFromImage(Image);
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
+	public void UpdateFeed(byte[] data)
 	{
+		Image.LoadJpgFromBuffer(data);
+		((ImageTexture)Texture).Update(Image);
 	}
 }

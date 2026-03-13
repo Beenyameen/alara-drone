@@ -1,43 +1,20 @@
 using Godot;
-using System;
 
 public partial class Player : CharacterBody3D
 {
-	public const float Speed = 5.0f;
-	public const float JumpVelocity = 4.5f;
-
 	public override void _PhysicsProcess(double delta)
 	{
-		Vector3 velocity = Velocity;
+		Vector3 v = Velocity;
+		if (!IsOnFloor()) v += GetGravity() * (float)delta;
+		if (Input.IsActionJustPressed("ascend") && IsOnFloor()) v.Y = 4.5f;
 
-		// Add the gravity.
-		if (!IsOnFloor())
-		{
-			velocity += GetGravity() * (float)delta;
-		}
+		Vector2 i = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+		Vector3 d = (Transform.Basis * new Vector3(i.X, 0, i.Y)).Normalized();
+		
+		v.X = d != Vector3.Zero ? d.X * 5.0f : Mathf.MoveToward(Velocity.X, 0, 5.0f);
+		v.Z = d != Vector3.Zero ? d.Z * 5.0f : Mathf.MoveToward(Velocity.Z, 0, 5.0f);
 
-		// Handle Jump.
-		if (Input.IsActionJustPressed("ui_accept") && IsOnFloor())
-		{
-			velocity.Y = JumpVelocity;
-		}
-
-		// Get the input direction and handle the movement/deceleration.
-		// As good practice, you should replace UI actions with custom gameplay actions.
-		Vector2 inputDir = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down");
-		Vector3 direction = (Transform.Basis * new Vector3(inputDir.X, 0, inputDir.Y)).Normalized();
-		if (direction != Vector3.Zero)
-		{
-			velocity.X = direction.X * Speed;
-			velocity.Z = direction.Z * Speed;
-		}
-		else
-		{
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
-			velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
-		}
-
-		Velocity = velocity;
+		Velocity = v;
 		MoveAndSlide();
 	}
 }
