@@ -10,7 +10,7 @@ public partial class Main : Control
 	public DepthFeed Depth;
 	public Node3D World;
 	public Node Current;
-	public byte[] RgbData, DepthData;
+	public byte[] RgbData, DepthData, TrajectoryData;
 
 	public override void _Ready()
 	{
@@ -32,6 +32,13 @@ public partial class Main : Control
 					DepthData = m[2].Buffer;
 				}
 			}
+		}) { IsBackground = true }.Start();
+		new Thread(() => {
+			using var sub = new SubscriberSocket();
+			sub.Options.ReceiveHighWatermark = 2;
+			sub.Connect("tcp://127.0.0.1:13000");
+			sub.Subscribe("");
+			while (true) if (sub.ReceiveFrameBytes() is { Length: 64 } m) TrajectoryData = m;
 		}) { IsBackground = true }.Start();
 	}
 
