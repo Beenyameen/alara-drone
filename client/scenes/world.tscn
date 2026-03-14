@@ -32,9 +32,11 @@ shape = SubResource("CapsuleShape3D_e5uuo")
 [node name="Camera3D" type="Camera3D" parent="Player" unique_id=40063829]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
-[node name="Drone" type="Node3D" parent="." unique_id=1530787048]
+[node name="WorldContent" type="Node3D" parent="." unique_id=1767807164]
+
+[node name="Drone" type="Node3D" parent="WorldContent" unique_id=1530787048]
 script = ExtResource("3_4wyf3")
 
-[node name="Model" type="MeshInstance3D" parent="Drone" unique_id=1724222667]
+[node name="Model" type="MeshInstance3D" parent="WorldContent/Drone" unique_id=1724222667]
 mesh = SubResource("BoxMesh_4wyf3")
 surface_material_override/0 = SubResource("StandardMaterial3D_4wyf3")

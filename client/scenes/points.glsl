@@ -10,6 +10,10 @@ layout(set = 0, binding = 1, std430) restrict writeonly buffer OutputBuffer {
     float data[];
 } output_buf;
 
+layout(set = 0, binding = 2, std430) restrict buffer MinYBuffer {
+    int min_y_int;
+} min_y_buf;
+
 layout(push_constant, std430) uniform Params {
     uint point_count;
 } params;
@@ -58,4 +62,8 @@ void main() {
     output_buf.data[out_offset + 12] = r;
     output_buf.data[out_offset + 13] = g;
     output_buf.data[out_offset + 14] = b;
-    output_buf.data[out_offset + 15] = 1.0;}
+    output_buf.data[out_offset + 15] = 1.0;
+    
+    int y_int = int(-py * 10000.0);
+    atomicMin(min_y_buf.min_y_int, y_int);
+}

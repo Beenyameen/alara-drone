@@ -10,6 +10,9 @@ public partial class World : Node3D
 	public StaticBody3D Sb;
 	public Player P;
 	public int LastX = int.MinValue, LastZ = int.MinValue;
+	
+	public Node3D WorldContent;
+	public float CeilingY = 3.0f;
 
 	private Thread _zmqThread;
 	private volatile bool _runZmq = true;
@@ -23,6 +26,7 @@ public partial class World : Node3D
 
 	public override void _Ready()
 	{
+		WorldContent = GetNode<Node3D>("WorldContent");
 		Sb = new StaticBody3D();
 		Sb.AddChild(new CollisionShape3D { Shape = new WorldBoundaryShape3D() });
 		AddChild(Sb);
@@ -34,7 +38,7 @@ public partial class World : Node3D
 		};
 		originMarker.Rotation = new Vector3(-Mathf.Pi / 2, 0, 0);
 		originMarker.Position = new Vector3(0, 0.01f, 0);
-		AddChild(originMarker);
+		WorldContent.AddChild(originMarker);
 
 		Mm = new MultiMeshInstance3D {
 			Multimesh = new MultiMesh {
@@ -46,16 +50,20 @@ public partial class World : Node3D
 		};
 		AddChild(Mm);
 
+		var mat = new ShaderMaterial();
+		mat.Shader = ResourceLoader.Load<Shader>("res://scenes/points.gdshader");
+		mat.SetShaderParameter("ceiling_y", CeilingY);
+
 		PointsMm = new MultiMeshInstance3D {
 			ExtraCullMargin = 10000.0f,
 			Multimesh = new MultiMesh {
 				TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
 				UseColors = true,
 				InstanceCount = 0,
-				Mesh = new BoxMesh { Size = new Vector3(0.025f, 0.025f, 0.025f), Material = new StandardMaterial3D { VertexColorUseAsAlbedo = true, ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded } }
+				Mesh = new BoxMesh { Size = new Vector3(0.025f, 0.025f, 0.025f), Material = mat }
 			}
 		};
-		AddChild(PointsMm);
+		WorldContent.AddChild(PointsMm);
 
 		P = GetNode<Player>("Player");
 
@@ -129,6 +137,17 @@ public partial class World : Node3D
 			Sb.ProcessMode = Mm.Visible ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		}
 
+		if (Input.IsActionPressed("ui_up"))
+		{
+			CeilingY += (float)delta * 2.0f;
+			((ShaderMaterial)((BoxMesh)PointsMm.Multimesh.Mesh).Material).SetShaderParameter("ceiling_y", CeilingY);
+		}
+		if (Input.IsActionPressed("ui_down"))
+		{
+			CeilingY -= (float)delta * 2.0f;
+			((ShaderMaterial)((BoxMesh)PointsMm.Multimesh.Mesh).Material).SetShaderParameter("ceiling_y", CeilingY);
+		}
+
 		_pointsMutex.WaitOne();
 		if (_pointsReady)
 		{
@@ -169,13 +188,19 @@ public partial class World : Node3D
 		uint outputSize = (uint)(pointCount * 64);
 		var outputBuffer = _rd.StorageBufferCreate(outputSize);
 
+		byte[] minYInit = System.BitConverter.GetBytes(2147483647);
+		var minYBuffer = _rd.StorageBufferCreate((uint)minYInit.Length, minYInit);
+
 		var uniform1 = new RDUniform { UniformType = RenderingDevice.UniformType.StorageBuffer, Binding = 0 };
 		uniform1.AddId(inputBuffer);
 
 		var uniform2 = new RDUniform { UniformType = RenderingDevice.UniformType.StorageBuffer, Binding = 1 };
 		uniform2.AddId(outputBuffer);
 
-		var uniformSet = _rd.UniformSetCreate(new Godot.Collections.Array<RDUniform> { uniform1, uniform2 }, _shader, 0);
+		var uniform3 = new RDUniform { UniformType = RenderingDevice.UniformType.StorageBuffer, Binding = 2 };
+		uniform3.AddId(minYBuffer);
+
+		var uniformSet = _rd.UniformSetCreate(new Godot.Collections.Array<RDUniform> { uniform1, uniform2, uniform3 }, _shader, 0);
 
 		var pushConstant = new byte[16];
 		System.BitConverter.GetBytes((uint)pointCount).CopyTo(pushConstant, 0);
@@ -191,15 +216,27 @@ public partial class World : Node3D
 		_rd.Sync();
 
 		byte[] outputBytes = _rd.BufferGetData(outputBuffer);
+		byte[] minYBytes = _rd.BufferGetData(minYBuffer);
 
 		float[] floats = new float[outputBytes.Length / 4];
 		System.Buffer.BlockCopy(outputBytes, 0, floats, 0, outputBytes.Length);
 		
+		if (pointCount > 0)
+		{
+			int minInt = System.BitConverter.ToInt32(minYBytes, 0);
+			if (minInt != 2147483647)
+			{
+				float minY = minInt / 10000.0f;
+				WorldContent.Position = new Vector3(WorldContent.Position.X, -minY, WorldContent.Position.Z);
+			}
+		}
+
 		PointsMm.Multimesh.InstanceCount = pointCount;
 		PointsMm.Multimesh.Buffer = floats;
 
 		_rd.FreeRid(uniformSet);
 		_rd.FreeRid(inputBuffer);
 		_rd.FreeRid(outputBuffer);
+		_rd.FreeRid(minYBuffer);
 	}
 }
