@@ -21,9 +21,8 @@ public partial class Drone : Node3D
 		var d = M.TrajectoryData;
 		if (d == null || d.Length != 64) return;
 		var b = new Basis(new Vector3(BitConverter.ToSingle(d, 0), BitConverter.ToSingle(d, 4), BitConverter.ToSingle(d, 8)), new Vector3(BitConverter.ToSingle(d, 16), BitConverter.ToSingle(d, 20), BitConverter.ToSingle(d, 24)), new Vector3(BitConverter.ToSingle(d, 32), BitConverter.ToSingle(d, 36), BitConverter.ToSingle(d, 40)));
-		var e = b.GetEuler(); e.X = -e.X;
 		var p = new Vector3(BitConverter.ToSingle(d, 48), BitConverter.ToSingle(d, 52), BitConverter.ToSingle(d, 56));
-		Transform = new Transform3D(Basis.FromEuler(e), p);
+		Transform = new Transform3D(b, p);
 		if (NumP == 0 || p.DistanceTo(LastP) >= 0.05f)
 		{
 			if (NumP > 0)
