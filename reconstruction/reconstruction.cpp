@@ -51,6 +51,9 @@ void receive_loop(std::queue<FrameData>& buffer, std::mutex& buffer_mutex) {
         ).inverse();
 
         std::lock_guard<std::mutex> lock(buffer_mutex);
+        while (!buffer.empty()) {
+            buffer.pop();
+        }
         buffer.push(fd);
 
     }
