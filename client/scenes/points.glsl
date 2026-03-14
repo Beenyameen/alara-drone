@@ -46,13 +46,13 @@ void main() {
     output_buf.data[out_offset + 4] = 0.0; // Basis.X.y
     output_buf.data[out_offset + 5] = 1.0; // Basis.Y.y
     output_buf.data[out_offset + 6] = 0.0; // Basis.Z.y
-    output_buf.data[out_offset + 7] = py;  // Origin.y
+    output_buf.data[out_offset + 7] = -py;  // Origin.y
 
     // Row 2
     output_buf.data[out_offset + 8] = 0.0; // Basis.X.z
     output_buf.data[out_offset + 9] = 0.0; // Basis.Y.z
     output_buf.data[out_offset + 10] = 1.0; // Basis.Z.z
-    output_buf.data[out_offset + 11] = pz;  // Origin.z
+    output_buf.data[out_offset + 11] = -pz;  // Origin.z
 
     // Color
     output_buf.data[out_offset + 12] = r;
