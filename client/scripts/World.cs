@@ -3,14 +3,15 @@ using Godot;
 public partial class World : Node3D
 {
 	public MultiMeshInstance3D Mm;
+	public StaticBody3D Sb;
 	public Player P;
 	public int LastX = int.MinValue, LastZ = int.MinValue;
 
 	public override void _Ready()
 	{
-		var sb = new StaticBody3D();
-		sb.AddChild(new CollisionShape3D { Shape = new WorldBoundaryShape3D() });
-		AddChild(sb);
+		Sb = new StaticBody3D();
+		Sb.AddChild(new CollisionShape3D { Shape = new WorldBoundaryShape3D() });
+		AddChild(Sb);
 		var originMarker = new CsgPolygon3D {
 			Polygon = new Vector2[] { new Vector2(-0.5f, -0.5f), new Vector2(0.5f, -0.5f), new Vector2(0.5f, 0.5f), new Vector2(-0.5f, 0.5f), new Vector2(-0.5f, -0.5f), new Vector2(-0.4f, -0.4f), new Vector2(-0.4f, 0.4f), new Vector2(0.4f, 0.4f), new Vector2(0.4f, -0.4f), new Vector2(-0.4f, -0.4f) },
 			Mode = CsgPolygon3D.ModeEnum.Depth,
@@ -34,6 +35,12 @@ public partial class World : Node3D
 
 	public override void _Process(double delta)
 	{
+		if (Input.IsActionJustPressed("floor"))
+		{
+			Mm.Visible = !Mm.Visible;
+			Sb.ProcessMode = Mm.Visible ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
+		}
+
 		int px = Mathf.FloorToInt(P.Position.X), pz = Mathf.FloorToInt(P.Position.Z);
 		if (px == LastX && pz == LastZ) return;
 		LastX = px; LastZ = pz;
