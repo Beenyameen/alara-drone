@@ -52,7 +52,7 @@ public partial class World : Node3D
 				TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
 				UseColors = true,
 				InstanceCount = 0,
-				Mesh = new BoxMesh { Size = new Vector3(0.05f, 0.05f, 0.05f), Material = new StandardMaterial3D { VertexColorUseAsAlbedo = true, ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded } }
+				Mesh = new BoxMesh { Size = new Vector3(0.025f, 0.025f, 0.025f), Material = new StandardMaterial3D { VertexColorUseAsAlbedo = true, ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded } }
 			}
 		};
 		AddChild(PointsMm);
