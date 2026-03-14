@@ -26,8 +26,19 @@ public partial class Drone : Node3D
 		for (int i = 0; i < count; i++)
 		{
 			int offset = i * 64;
-			var b = new Basis(new Vector3(BitConverter.ToSingle(d, offset + 0), BitConverter.ToSingle(d, offset + 4), BitConverter.ToSingle(d, offset + 8)), new Vector3(BitConverter.ToSingle(d, offset + 16), BitConverter.ToSingle(d, offset + 20), BitConverter.ToSingle(d, offset + 24)), new Vector3(BitConverter.ToSingle(d, offset + 32), BitConverter.ToSingle(d, offset + 36), BitConverter.ToSingle(d, offset + 40)));
-			var p = new Vector3(BitConverter.ToSingle(d, offset + 48), BitConverter.ToSingle(d, offset + 52), BitConverter.ToSingle(d, offset + 56));
+			var raw_b = new Basis(new Vector3(BitConverter.ToSingle(d, offset + 0), BitConverter.ToSingle(d, offset + 4), BitConverter.ToSingle(d, offset + 8)), new Vector3(BitConverter.ToSingle(d, offset + 16), BitConverter.ToSingle(d, offset + 20), BitConverter.ToSingle(d, offset + 24)), new Vector3(BitConverter.ToSingle(d, offset + 32), BitConverter.ToSingle(d, offset + 36), BitConverter.ToSingle(d, offset + 40)));
+			var raw_p = new Vector3(BitConverter.ToSingle(d, offset + 48), BitConverter.ToSingle(d, offset + 52), BitConverter.ToSingle(d, offset + 56));
+			
+			var t_cw = new Transform3D(raw_b, raw_p);
+			var t_wc = t_cw.Inverse();
+			var b_wc = t_wc.Basis;
+
+			var b = new Basis(
+				new Vector3(b_wc.X.X, -b_wc.X.Y, -b_wc.X.Z),
+				new Vector3(-b_wc.Y.X, b_wc.Y.Y, b_wc.Y.Z),
+				new Vector3(-b_wc.Z.X, b_wc.Z.Y, b_wc.Z.Z)
+			);
+			var p = new Vector3(t_wc.Origin.X, -t_wc.Origin.Y, -t_wc.Origin.Z);
 			
 			if (i == count - 1)
 			{
