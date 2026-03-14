@@ -9,5 +9,6 @@ services:
     build: ./trajectory
     ports:
       - "13000:13000/tcp"
+      - "14000:14000/tcp"
     depends_on:
       - broker

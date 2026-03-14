@@ -24,6 +24,10 @@ int main() {
     zmq::socket_t pub(ctx, ZMQ_PUB);
     pub.setsockopt(ZMQ_SNDHWM, &hwm, sizeof(hwm));
     pub.bind("tcp://0.0.0.0:13000");
+
+    zmq::socket_t pub2(ctx, ZMQ_PUB);
+    pub2.setsockopt(ZMQ_SNDHWM, &hwm, sizeof(hwm));
+    pub2.bind("tcp://0.0.0.0:14000");
     
     while (true) {
         zmq::message_t m0, m1, m2;
@@ -63,6 +67,13 @@ int main() {
             memcpy(ptr, cur.data(), 64);
 
             pub.send(out);
+
+            zmq::message_t out_pose(64);
+            memcpy(out_pose.data(), cur.data(), 64);
+            pub2.send(m0, ZMQ_SNDMORE);
+            pub2.send(m1, ZMQ_SNDMORE);
+            pub2.send(m2, ZMQ_SNDMORE);
+            pub2.send(out_pose);
         }
     }
 }
