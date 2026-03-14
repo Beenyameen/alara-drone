@@ -67,7 +67,7 @@ public partial class World : Node3D
 		
 		if (!string.IsNullOrEmpty(shaderSpirV.CompileErrorCompute))
 		{
-			GD.PrintErr("Compute shader compile error: ", shaderSpirV.CompileErrorCompute);
+
 		}
 
 		_shader = _rd.ShaderCreateFromSpirV(shaderSpirV);
@@ -106,7 +106,7 @@ public partial class World : Node3D
 			}
 			catch (System.Exception e)
 			{
-				GD.PrintErr("ZMQ Thread Error: ", e.Message);
+
 				Thread.Sleep(2000);
 			}
 		}
@@ -139,7 +139,7 @@ public partial class World : Node3D
 			if (rawBytes != null && rawBytes.Length > 0)
 			{
 				int pointCount = rawBytes.Length / 24; // 6 floats * 4 bytes
-				GD.Print($"Received point cloud from RTAB-MAP. Bytes: {rawBytes.Length}, Point count: {pointCount}");
+
 				if (pointCount > 0) UpdatePointCloud(rawBytes, pointCount);
 			}
 		}

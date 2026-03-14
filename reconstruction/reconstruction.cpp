@@ -52,7 +52,7 @@ void receive_loop(std::queue<FrameData>& buffer, std::mutex& buffer_mutex) {
 
         std::lock_guard<std::mutex> lock(buffer_mutex);
         buffer.push(fd);
-        std::cout << "[Reconstruction] Received frame. Buffer size: " << buffer.size() << " | TS: " << fd.ts << std::endl;
+
     }
 }
 
@@ -66,7 +66,7 @@ void rep_loop() {
         rep.recv(&req);
         
         std::lock_guard<std::mutex> lock(cloud_mutex);
-        std::cout << "[Reconstruction] Sending point cloud to Godot. Point count: " << point_cloud.size() / 6 << " | Float size: " << point_cloud.size() << std::endl;
+
         zmq::message_t rep_msg(point_cloud.size() * sizeof(float));
         memcpy(rep_msg.data(), point_cloud.data(), point_cloud.size() * sizeof(float));
         rep.send(rep_msg);
