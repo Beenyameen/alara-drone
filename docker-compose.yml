@@ -12,3 +12,10 @@ services:
       - "14000:14000/tcp"
     depends_on:
       - broker
+
+  reconstruction:
+    build: ./reconstruction
+    ports:
+      - "15000:15000/tcp"
+    depends_on:
+      - trajectory

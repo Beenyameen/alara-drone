@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://bkxj678lwhg0t"
+path="res://.godot/imported/points.glsl-47c7ddc7d5efa292c3046e9ed01b5931.res"
+
+[deps]
+
+source_file="res://scenes/points.glsl"
+dest_files=["res://.godot/imported/points.glsl-47c7ddc7d5efa292c3046e9ed01b5931.res"]
+
+[params]
+
