@@ -38,7 +38,7 @@ public partial class Main : Control
 			sub.Options.ReceiveHighWatermark = 2;
 			sub.Connect("tcp://127.0.0.1:13000");
 			sub.Subscribe("");
-			while (true) if (sub.ReceiveFrameBytes() is { Length: 64 } m) TrajectoryData = m;
+			while (true) if (sub.ReceiveFrameBytes() is { Length: > 0 } m && m.Length % 64 == 0) TrajectoryData = m;
 		}) { IsBackground = true }.Start();
 	}
 

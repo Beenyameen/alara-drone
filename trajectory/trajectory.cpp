@@ -1,7 +1,13 @@
 #include <iostream>
 #include <zmq.hpp>
 #include <opencv2/opencv.hpp>
+#define private public
 #include <System.h>
+#undef private
+#include <Atlas.h>
+#include <KeyFrame.h>
+#include <algorithm>
+#include <vector>
 
 using namespace std;
 
@@ -33,10 +39,29 @@ int main() {
         int state = slam.GetTrackingState();
 
         if (state == 2) {
-            Eigen::Matrix4f mat = pose.matrix();
+            std::vector<ORB_SLAM3::KeyFrame*> kfs = slam.mpAtlas->GetAllKeyFrames();
+            std::sort(kfs.begin(), kfs.end(), [](ORB_SLAM3::KeyFrame* a, ORB_SLAM3::KeyFrame* b) {
+                return a->mnId < b->mnId;
+            });
 
-            zmq::message_t out(64);
-            memcpy(out.data(), mat.data(), 64);
+            size_t valid_kfs = 0;
+            for (auto kf : kfs) {
+                if (!kf->isBad()) valid_kfs++;
+            }
+
+            zmq::message_t out((valid_kfs + 1) * 64);
+            char* ptr = static_cast<char*>(out.data());
+
+            for (auto kf : kfs) {
+                if (kf->isBad()) continue;
+                Eigen::Matrix4f mat = kf->GetPose().matrix();
+                memcpy(ptr, mat.data(), 64);
+                ptr += 64;
+            }
+
+            Eigen::Matrix4f cur = pose.matrix();
+            memcpy(ptr, cur.data(), 64);
+
             pub.send(out);
         }
     }

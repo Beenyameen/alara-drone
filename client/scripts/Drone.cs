@@ -5,8 +5,6 @@ public partial class Drone : Node3D
 {
 	public Main M;
 	public MultiMeshInstance3D Pts, Lines;
-	public Vector3 LastP;
-	public int NumP, NumL;
 
 	public override void _Ready()
 	{
@@ -19,23 +17,40 @@ public partial class Drone : Node3D
 	public override void _Process(double delta)
 	{
 		var d = M.TrajectoryData;
-		if (d == null || d.Length != 64) return;
-		var b = new Basis(new Vector3(BitConverter.ToSingle(d, 0), BitConverter.ToSingle(d, 4), BitConverter.ToSingle(d, 8)), new Vector3(BitConverter.ToSingle(d, 16), BitConverter.ToSingle(d, 20), BitConverter.ToSingle(d, 24)), new Vector3(BitConverter.ToSingle(d, 32), BitConverter.ToSingle(d, 36), BitConverter.ToSingle(d, 40)));
-		var p = new Vector3(BitConverter.ToSingle(d, 48), BitConverter.ToSingle(d, 52), BitConverter.ToSingle(d, 56));
-		Transform = new Transform3D(b, p);
-		if (NumP == 0 || p.DistanceTo(LastP) >= 0.05f)
+		if (d == null || d.Length % 64 != 0 || d.Length == 0) return;
+		
+		int count = d.Length / 64;
+		int numP = 0, numL = 0;
+		Vector3 lastP = Vector3.Zero;
+
+		for (int i = 0; i < count; i++)
 		{
-			if (NumP > 0)
+			int offset = i * 64;
+			var b = new Basis(new Vector3(BitConverter.ToSingle(d, offset + 0), BitConverter.ToSingle(d, offset + 4), BitConverter.ToSingle(d, offset + 8)), new Vector3(BitConverter.ToSingle(d, offset + 16), BitConverter.ToSingle(d, offset + 20), BitConverter.ToSingle(d, offset + 24)), new Vector3(BitConverter.ToSingle(d, offset + 32), BitConverter.ToSingle(d, offset + 36), BitConverter.ToSingle(d, offset + 40)));
+			var p = new Vector3(BitConverter.ToSingle(d, offset + 48), BitConverter.ToSingle(d, offset + 52), BitConverter.ToSingle(d, offset + 56));
+			
+			if (i == count - 1)
 			{
-				var v = p - LastP;
-				var y = v.Normalized();
-				var x = Vector3.Up.Cross(y);
-				if (x.LengthSquared() < 0.001f) x = Vector3.Right.Cross(y);
-				Lines.Multimesh.SetInstanceTransform(NumL++, new Transform3D(new Basis(x.Normalized(), v, x.Normalized().Cross(y).Normalized()), (LastP + p) / 2f));
-				Lines.Multimesh.VisibleInstanceCount = NumL;
+				Transform = new Transform3D(b, p);
 			}
-			Pts.Multimesh.SetInstanceTransform(NumP++, new Transform3D(Basis.Identity, LastP = p));
-			Pts.Multimesh.VisibleInstanceCount = NumP;
+
+			if (numP == 0 || p.DistanceTo(lastP) >= 0.05f)
+			{
+				if (numP >= 50000 || numL >= 50000) break;
+
+				if (numP > 0)
+				{
+					var v = p - lastP;
+					var y = v.Normalized();
+					var x = Vector3.Up.Cross(y);
+					if (x.LengthSquared() < 0.001f) x = Vector3.Right.Cross(y);
+					Lines.Multimesh.SetInstanceTransform(numL++, new Transform3D(new Basis(x.Normalized(), v, x.Normalized().Cross(y).Normalized()), (lastP + p) / 2f));
+				}
+				Pts.Multimesh.SetInstanceTransform(numP++, new Transform3D(Basis.Identity, lastP = p));
+			}
 		}
+		
+		Lines.Multimesh.VisibleInstanceCount = numL;
+		Pts.Multimesh.VisibleInstanceCount = numP;
 	}
 }
