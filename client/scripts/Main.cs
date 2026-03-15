@@ -25,6 +25,11 @@ public partial class Main : Control
 			sub.Subscribe("");
 			while (true)
 			{
+				if (Current != Rgb && Current != Depth)
+				{
+					Thread.Sleep(50);
+					continue;
+				}
 				NetMQMessage m = new NetMQMessage();
 				if (sub.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(50), ref m) && m.FrameCount >= 3)
 				{
@@ -38,7 +43,15 @@ public partial class Main : Control
 			sub.Options.ReceiveHighWatermark = 2;
 			sub.Connect("tcp://127.0.0.1:13000");
 			sub.Subscribe("");
-			while (true) if (sub.ReceiveFrameBytes() is { Length: > 0 } m && m.Length % 64 == 0) TrajectoryData = m;
+			while (true)
+			{
+				if (Current != World)
+				{
+					Thread.Sleep(50);
+					continue;
+				}
+				if (sub.TryReceiveFrameBytes(TimeSpan.FromMilliseconds(50), out var m) && m.Length > 0 && m.Length % 64 == 0) TrajectoryData = m;
+			}
 		}) { IsBackground = true }.Start();
 	}
 
@@ -59,6 +72,6 @@ public partial class Main : Control
 		World.Visible = World == n;
 		Rgb.ProcessMode = Rgb == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		Depth.ProcessMode = Depth == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
-		World.ProcessMode = ProcessModeEnum.Always;
+		World.ProcessMode = World == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 	}
 }

@@ -99,6 +99,12 @@ public partial class World : Node3D
 				
 				while (_runZmq)
 				{
+					if (ProcessMode == ProcessModeEnum.Disabled)
+					{
+						Thread.Sleep(100);
+						continue;
+					}
+
 					req.SendFrameEmpty();
 					if (req.TryReceiveFrameBytes(System.TimeSpan.FromSeconds(2), out var bytes))
 					{
