@@ -63,7 +63,7 @@ public partial class World : Node3D
 				TransformFormat = MultiMesh.TransformFormatEnum.Transform3D,
 				UseColors = true,
 				InstanceCount = 0,
-				Mesh = new BoxMesh { Size = new Vector3(0.025f, 0.025f, 0.025f), Material = mat }
+				Mesh = new BoxMesh { Size = new Vector3(0.0125f, 0.0125f, 0.0125f), Material = mat }
 			}
 		};
 		WorldContent.AddChild(PointsMm);

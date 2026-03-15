@@ -4,14 +4,18 @@ using System;
 public partial class Drone : Node3D
 {
 	public Main M;
-	public MultiMeshInstance3D Pts, Lines;
+	public MultiMeshInstance3D Pts, Lines, Cones;
+	public MeshInstance3D FirstPt;
 
 	public override void _Ready()
 	{
 		M = GetParent().GetParent().GetParent() as Main;
 		var m = new StandardMaterial3D { AlbedoColor = new Color(1, 0.2f, 0.2f), ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded };
+		var greenMat = new StandardMaterial3D { AlbedoColor = new Color(0, 1, 0), EmissionEnabled = true, Emission = new Color(0, 1, 0), EmissionEnergyMultiplier = 4.0f };
 		GetParent().CallDeferred("add_child", Pts = new MultiMeshInstance3D { CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, Multimesh = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, InstanceCount = 50000, Mesh = new SphereMesh { Radius = 0.02f, Height = 0.04f, Material = m } } });
 		GetParent().CallDeferred("add_child", Lines = new MultiMeshInstance3D { CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, Multimesh = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, InstanceCount = 50000, Mesh = new CylinderMesh { TopRadius = 0.01f, BottomRadius = 0.01f, Height = 1f, Material = m } } });
+		GetParent().CallDeferred("add_child", Cones = new MultiMeshInstance3D { CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, Multimesh = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, InstanceCount = 50000, Mesh = new CylinderMesh { TopRadius = 0.0f, BottomRadius = 0.02f, Height = 0.06f, Material = m } } });
+		GetParent().CallDeferred("add_child", FirstPt = new MeshInstance3D { CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, Mesh = new SphereMesh { Radius = 0.025f, Height = 0.05f, Material = greenMat }, Visible = false });
 	}
 
 	public override void _Process(double delta)
@@ -45,7 +49,7 @@ public partial class Drone : Node3D
 				Transform = new Transform3D(b, p);
 			}
 
-			if (numP == 0 || p.DistanceTo(lastP) >= 0.05f)
+			if (numP == 0 || p.DistanceTo(lastP) >= 0.10f)
 			{
 				if (numP >= 50000 || numL >= 50000) break;
 
@@ -55,13 +59,20 @@ public partial class Drone : Node3D
 					var y = v.Normalized();
 					var x = Vector3.Up.Cross(y);
 					if (x.LengthSquared() < 0.001f) x = Vector3.Right.Cross(y);
-					Lines.Multimesh.SetInstanceTransform(numL++, new Transform3D(new Basis(x.Normalized(), v, x.Normalized().Cross(y).Normalized()), (lastP + p) / 2f));
+					Lines.Multimesh.SetInstanceTransform(numL, new Transform3D(new Basis(x.Normalized(), v, x.Normalized().Cross(y).Normalized()), (lastP + p) / 2f));
+					Cones.Multimesh.SetInstanceTransform(numL++, new Transform3D(new Basis(x.Normalized(), y, x.Normalized().Cross(y).Normalized()), (lastP + p) / 2f));
+				}
+				else
+				{
+					FirstPt.Transform = new Transform3D(Basis.Identity, p);
+					FirstPt.Visible = true;
 				}
 				Pts.Multimesh.SetInstanceTransform(numP++, new Transform3D(Basis.Identity, lastP = p));
 			}
 		}
 		
 		Lines.Multimesh.VisibleInstanceCount = numL;
+		Cones.Multimesh.VisibleInstanceCount = numL;
 		Pts.Multimesh.VisibleInstanceCount = numP;
 	}
 }
