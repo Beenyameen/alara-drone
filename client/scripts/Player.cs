@@ -38,7 +38,7 @@ public partial class Player : CharacterBody3D
 		}
 		Vector2 i = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
 		Vector3 d = (Transform.Basis * new Vector3(i.X, 0, i.Y)).Normalized();
-		float s = 10.0f * (Input.IsActionPressed("boost") ? 1.5f : 1.0f);
+		float s = 2.0f * (Input.IsActionPressed("boost") ? 1.5f : 1.0f);
 		Vector3 v = Velocity;
 		v.X = d.X * s;
 		v.Z = d.Z * s;
