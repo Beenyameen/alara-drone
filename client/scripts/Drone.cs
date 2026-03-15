@@ -16,6 +16,29 @@ public partial class Drone : Node3D
 		GetParent().CallDeferred("add_child", Lines = new MultiMeshInstance3D { CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, Multimesh = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, InstanceCount = 50000, Mesh = new CylinderMesh { TopRadius = 0.01f, BottomRadius = 0.01f, Height = 1f, Material = m } } });
 		GetParent().CallDeferred("add_child", Cones = new MultiMeshInstance3D { CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, Multimesh = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, InstanceCount = 50000, Mesh = new CylinderMesh { TopRadius = 0.0f, BottomRadius = 0.02f, Height = 0.06f, Material = m } } });
 		GetParent().CallDeferred("add_child", FirstPt = new MeshInstance3D { CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, Mesh = new SphereMesh { Radius = 0.025f, Height = 0.05f, Material = greenMat }, Visible = false });
+
+		var pyrMat = new StandardMaterial3D { AlbedoColor = new Color(0, 1, 1), ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded };
+		var im = new ImmediateMesh();
+		var pyrMi = new MeshInstance3D { CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, Mesh = im, MaterialOverride = pyrMat };
+		AddChild(pyrMi);
+
+		im.SurfaceBegin(Mesh.PrimitiveType.Lines);
+		var apex = new Vector3(0, 0, 0);
+		var c1 = new Vector3(0.1f, 0.075f, -0.2f);
+		var c2 = new Vector3(-0.1f, 0.075f, -0.2f);
+		var c3 = new Vector3(-0.1f, -0.075f, -0.2f);
+		var c4 = new Vector3(0.1f, -0.075f, -0.2f);
+
+		im.SurfaceAddVertex(apex); im.SurfaceAddVertex(c1);
+		im.SurfaceAddVertex(apex); im.SurfaceAddVertex(c2);
+		im.SurfaceAddVertex(apex); im.SurfaceAddVertex(c3);
+		im.SurfaceAddVertex(apex); im.SurfaceAddVertex(c4);
+
+		im.SurfaceAddVertex(c1); im.SurfaceAddVertex(c2);
+		im.SurfaceAddVertex(c2); im.SurfaceAddVertex(c3);
+		im.SurfaceAddVertex(c3); im.SurfaceAddVertex(c4);
+		im.SurfaceAddVertex(c4); im.SurfaceAddVertex(c1);
+		im.SurfaceEnd();
 	}
 
 	public override void _Process(double delta)
