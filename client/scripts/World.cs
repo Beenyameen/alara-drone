@@ -41,7 +41,7 @@ public partial class World : Node3D
 		};
 		originMarker.Rotation = new Vector3(-Mathf.Pi / 2, 0, 0);
 		originMarker.Position = new Vector3(0, 0.01f, 0);
-		WorldContent.AddChild(originMarker);
+		AddChild(originMarker);
 
 		Mm = new MultiMeshInstance3D {
 			Multimesh = new MultiMesh {
@@ -184,7 +184,7 @@ public partial class World : Node3D
 			if (x * x + z * z <= 10000)
 			{
 				int wx = px + x, wz = pz + z;
-				Mm.Multimesh.SetInstanceTransform(i, new Transform3D(Basis.Identity, new Vector3(wx + 0.5f, 0, wz + 0.5f)));
+				Mm.Multimesh.SetInstanceTransform(i, new Transform3D(Basis.Identity, new Vector3(wx, 0, wz)));
 				Mm.Multimesh.SetInstanceColor(i++, (wx + wz) % 2 == 0 ? new Color(0.2f, 0.2f, 0.2f) : new Color(0.8f, 0.8f, 0.8f));
 			}
 		Mm.Multimesh.VisibleInstanceCount = i;
