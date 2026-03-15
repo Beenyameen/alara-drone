@@ -14,6 +14,10 @@ layout(set = 0, binding = 2, std430) restrict buffer MinYBuffer {
     int min_y_int;
 } min_y_buf;
 
+layout(set = 0, binding = 3, std430) restrict buffer MaxYBuffer {
+    int max_y_int;
+} max_y_buf;
+
 layout(push_constant, std430) uniform Params {
     uint point_count;
 } params;
@@ -66,4 +70,5 @@ void main() {
     
     int y_int = int(-py * 10000.0);
     atomicMin(min_y_buf.min_y_int, y_int);
+    atomicMax(max_y_buf.max_y_int, y_int);
 }

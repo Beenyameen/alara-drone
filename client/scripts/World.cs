@@ -13,6 +13,9 @@ public partial class World : Node3D
 	
 	public Node3D WorldContent;
 	public float CeilingY = 3.0f;
+	public float CurrentMinY = float.MaxValue;
+	public float CurrentMaxY = float.MinValue;
+	public bool _isCeilingAutoTracking = true;
 
 	private Thread _zmqThread;
 	private volatile bool _runZmq = true;
@@ -52,7 +55,7 @@ public partial class World : Node3D
 
 		var mat = new ShaderMaterial();
 		mat.Shader = ResourceLoader.Load<Shader>("res://scenes/points.gdshader");
-		mat.SetShaderParameter("ceiling_y", CeilingY);
+		mat.SetShaderParameter("ceiling_y", 1000.0f); // Default safe value
 
 		PointsMm = new MultiMeshInstance3D {
 			ExtraCullMargin = 10000.0f,
@@ -137,15 +140,20 @@ public partial class World : Node3D
 			Sb.ProcessMode = Mm.Visible ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		}
 
-		if (Input.IsActionPressed("ui_up"))
+		if (CurrentMaxY > CurrentMinY)
 		{
-			CeilingY += (float)delta * 2.0f;
-			((ShaderMaterial)((BoxMesh)PointsMm.Multimesh.Mesh).Material).SetShaderParameter("ceiling_y", CeilingY);
-		}
-		if (Input.IsActionPressed("ui_down"))
-		{
-			CeilingY -= (float)delta * 2.0f;
-			((ShaderMaterial)((BoxMesh)PointsMm.Multimesh.Mesh).Material).SetShaderParameter("ceiling_y", CeilingY);
+			if (Input.IsActionPressed("ui_up"))
+			{
+				_isCeilingAutoTracking = false;
+				CeilingY = Mathf.Min(CeilingY + (float)delta * 2.0f, CurrentMaxY + 0.1f);
+				((ShaderMaterial)((BoxMesh)PointsMm.Multimesh.Mesh).Material).SetShaderParameter("ceiling_y", CeilingY);
+			}
+			if (Input.IsActionPressed("ui_down"))
+			{
+				_isCeilingAutoTracking = false;
+				CeilingY = Mathf.Max(CeilingY - (float)delta * 2.0f, CurrentMinY - 0.1f);
+				((ShaderMaterial)((BoxMesh)PointsMm.Multimesh.Mesh).Material).SetShaderParameter("ceiling_y", CeilingY);
+			}
 		}
 
 		_pointsMutex.WaitOne();
@@ -191,6 +199,9 @@ public partial class World : Node3D
 		byte[] minYInit = System.BitConverter.GetBytes(2147483647);
 		var minYBuffer = _rd.StorageBufferCreate((uint)minYInit.Length, minYInit);
 
+		byte[] maxYInit = System.BitConverter.GetBytes(-2147483648);
+		var maxYBuffer = _rd.StorageBufferCreate((uint)maxYInit.Length, maxYInit);
+
 		var uniform1 = new RDUniform { UniformType = RenderingDevice.UniformType.StorageBuffer, Binding = 0 };
 		uniform1.AddId(inputBuffer);
 
@@ -200,7 +211,10 @@ public partial class World : Node3D
 		var uniform3 = new RDUniform { UniformType = RenderingDevice.UniformType.StorageBuffer, Binding = 2 };
 		uniform3.AddId(minYBuffer);
 
-		var uniformSet = _rd.UniformSetCreate(new Godot.Collections.Array<RDUniform> { uniform1, uniform2, uniform3 }, _shader, 0);
+		var uniform4 = new RDUniform { UniformType = RenderingDevice.UniformType.StorageBuffer, Binding = 3 };
+		uniform4.AddId(maxYBuffer);
+
+		var uniformSet = _rd.UniformSetCreate(new Godot.Collections.Array<RDUniform> { uniform1, uniform2, uniform3, uniform4 }, _shader, 0);
 
 		var pushConstant = new byte[16];
 		System.BitConverter.GetBytes((uint)pointCount).CopyTo(pushConstant, 0);
@@ -217,6 +231,7 @@ public partial class World : Node3D
 
 		byte[] outputBytes = _rd.BufferGetData(outputBuffer);
 		byte[] minYBytes = _rd.BufferGetData(minYBuffer);
+		byte[] maxYBytes = _rd.BufferGetData(maxYBuffer);
 
 		float[] floats = new float[outputBytes.Length / 4];
 		System.Buffer.BlockCopy(outputBytes, 0, floats, 0, outputBytes.Length);
@@ -224,10 +239,22 @@ public partial class World : Node3D
 		if (pointCount > 0)
 		{
 			int minInt = System.BitConverter.ToInt32(minYBytes, 0);
-			if (minInt != 2147483647)
+			int maxInt = System.BitConverter.ToInt32(maxYBytes, 0);
+			if (minInt != 2147483647 && maxInt != -2147483648)
 			{
-				float minY = minInt / 10000.0f;
-				WorldContent.Position = new Vector3(WorldContent.Position.X, -minY, WorldContent.Position.Z);
+				float rawMinY = minInt / 10000.0f;
+				float rawMaxY = maxInt / 10000.0f;
+				
+				WorldContent.Position = new Vector3(WorldContent.Position.X, -rawMinY, WorldContent.Position.Z);
+				
+				CurrentMinY = 0.0f;
+				CurrentMaxY = rawMaxY - rawMinY;
+
+				if (_isCeilingAutoTracking)
+				{
+					CeilingY = CurrentMaxY + 0.1f;
+					((ShaderMaterial)((BoxMesh)PointsMm.Multimesh.Mesh).Material).SetShaderParameter("ceiling_y", CeilingY);
+				}
 			}
 		}
 
@@ -238,5 +265,6 @@ public partial class World : Node3D
 		_rd.FreeRid(inputBuffer);
 		_rd.FreeRid(outputBuffer);
 		_rd.FreeRid(minYBuffer);
+		_rd.FreeRid(maxYBuffer);
 	}
 }
