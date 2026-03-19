@@ -73,5 +73,7 @@ public partial class Main : Control
 		Rgb.ProcessMode = Rgb == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		Depth.ProcessMode = Depth == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		World.ProcessMode = World == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
+		
+		if (n != World) Input.MouseMode = Input.MouseModeEnum.Visible;
 	}
 }
