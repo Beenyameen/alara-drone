@@ -6,18 +6,16 @@ using NetMQ.Sockets;
 
 public partial class Main : Control
 {
-	public RGBFeed Rgb;
-	public DepthFeed Depth;
+	public Feed FeedNode;
 	public Node3D World;
 	public Node Current;
 	public byte[] RgbData, DepthData, TrajectoryData;
 
 	public override void _Ready()
 	{
-		AddChild(Rgb = GD.Load<PackedScene>("res://scenes/rgb_feed.tscn").Instantiate<RGBFeed>());
-		AddChild(Depth = GD.Load<PackedScene>("res://scenes/depth_feed.tscn").Instantiate<DepthFeed>());
+		AddChild(FeedNode = GD.Load<PackedScene>("res://scenes/feed.tscn").Instantiate<Feed>());
 		AddChild(World = GD.Load<PackedScene>("res://scenes/world.tscn").Instantiate<Node3D>());
-		SwitchScene(Rgb);
+		SwitchScene(FeedNode, Feed.Mode.Rgb);
 		new Thread(() => {
 			using var udp = new System.Net.Sockets.UdpClient();
 			udp.Client.SetSocketOption(System.Net.Sockets.SocketOptionLevel.Socket, System.Net.Sockets.SocketOptionName.ReuseAddress, true);
@@ -55,7 +53,7 @@ public partial class Main : Control
 					
 					pub.SendMoreFrame(m[0].Buffer).SendMoreFrame(m[1].Buffer).SendFrame(depthBytes);
 
-					if (Current == Rgb || Current == Depth)
+					if (Current == FeedNode)
 					{
 						RgbData = m[1].Buffer;
 						DepthData = depthBytes;
@@ -82,22 +80,37 @@ public partial class Main : Control
 
 	public override void _Process(double delta)
 	{
-		if (Input.IsActionJustPressed("select_rgb")) SwitchScene(Rgb);
-		if (Input.IsActionJustPressed("select_depth")) SwitchScene(Depth);
+		if (Input.IsActionJustPressed("select_rgb")) SwitchScene(FeedNode, Feed.Mode.Rgb);
+		if (Input.IsActionJustPressed("select_depth")) SwitchScene(FeedNode, Feed.Mode.Depth);
 		if (Input.IsActionJustPressed("select_world")) SwitchScene(World);
-		if (RgbData != null && Current == Rgb) { Rgb.UpdateFeed(RgbData); RgbData = null; }
-		if (DepthData != null && Current == Depth) { Depth.UpdateFeed(DepthData); DepthData = null; }
+		
+		if (Current == FeedNode) 
+		{
+			if (FeedNode.CurrentMode == Feed.Mode.Rgb && RgbData != null) 
+			{ 
+				FeedNode.UpdateFeedRgb(RgbData); 
+				RgbData = null; 
+			}
+			else if (FeedNode.CurrentMode == Feed.Mode.Depth && DepthData != null) 
+			{ 
+				FeedNode.UpdateFeedDepth(DepthData); 
+				DepthData = null; 
+			}
+		}
 	}
 
-	public void SwitchScene(Node n)
+	public void SwitchScene(Node n, Feed.Mode mode = Feed.Mode.Rgb)
 	{
 		Current = n;
-		Rgb.Visible = Rgb == n;
-		Depth.Visible = Depth == n;
+		FeedNode.Visible = FeedNode == n;
 		World.Visible = World == n;
-		Rgb.ProcessMode = Rgb == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
-		Depth.ProcessMode = Depth == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
+		FeedNode.ProcessMode = FeedNode == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		World.ProcessMode = World == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
+		
+		if (FeedNode == n)
+		{
+			FeedNode.CurrentMode = mode;
+		}
 		
 		if (n != World) Input.MouseMode = Input.MouseModeEnum.Visible;
 	}
