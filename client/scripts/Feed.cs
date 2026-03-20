@@ -10,7 +10,20 @@ public partial class Feed : TextureRect
 	private byte[] _rgbBuffer = new byte[640 * 480 * 3];
 	public int FramesReceived = 0;
 
+	public float R, P, Y, T;
+
 	public override void _Ready() => Texture = ImageTexture.CreateFromImage(Image);
+
+	public override void _Process(double delta)
+	{
+		if (Input.IsActionPressed("ascend")) T = Mathf.Clamp(T + (float)delta * 0.5f, 0, 1);
+		if (Input.IsActionPressed("descend")) T = Mathf.Clamp(T - (float)delta * 0.5f, 0, 1);
+		if (Input.IsKeyPressed(Key.Q)) Y = Mathf.Clamp(Y - (float)delta * 2f, -1, 1);
+		else if (Input.IsKeyPressed(Key.E)) Y = Mathf.Clamp(Y + (float)delta * 2f, -1, 1);
+		else Y = Mathf.MoveToward(Y, 0, (float)delta * 2f);
+		var i = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+		R = i.X; P = i.Y;
+	}
 
 	public void UpdateFeedRgb(byte[] data)
 	{

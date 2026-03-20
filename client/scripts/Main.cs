@@ -11,6 +11,8 @@ public partial class Main : Control
 	public Node3D World;
 	public Node Current;
 	public byte[] RgbData, DepthData, TrajectoryData;
+	public Vector3 ImuData;
+	public string PiIp;
 
 	public override void _Ready()
 	{
@@ -33,7 +35,7 @@ public partial class Main : Control
 					var ep = new System.Net.IPEndPoint(System.Net.IPAddress.Any, 0);
 					var bytes = udp.Receive(ref ep);
 					string msg = System.Text.Encoding.UTF8.GetString(bytes);
-					if (msg.StartsWith("PI:")) ip = msg.Split(':')[1];
+					if (msg.StartsWith("PI:")) PiIp = ip = msg.Split(':')[1];
 				}
 				catch (System.Net.Sockets.SocketException) { }
 			}
@@ -78,6 +80,25 @@ public partial class Main : Control
 					continue;
 				}
 				if (sub.TryReceiveFrameBytes(TimeSpan.FromMilliseconds(50), out var m) && m.Length > 0 && m.Length % 64 == 0) TrajectoryData = m;
+			}
+		}) { IsBackground = true }.Start();
+		new Thread(() => {
+			while (PiIp == null) Thread.Sleep(100);
+			using var pub = new PublisherSocket();
+			pub.Connect($"tcp://{PiIp}:15000");
+			using var sub = new SubscriberSocket();
+			sub.Connect($"tcp://{PiIp}:16000");
+			sub.Subscribe("");
+			while (true)
+			{
+				var d = new byte[16];
+				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.R), 0, d, 0, 4);
+				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.P), 0, d, 4, 4);
+				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.Y), 0, d, 8, 4);
+				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.T), 0, d, 12, 4);
+				pub.SendFrame(d);
+				if (sub.TryReceiveFrameBytes(TimeSpan.FromMilliseconds(100), out var imu) && imu.Length == 12)
+					ImuData = new Vector3(BitConverter.ToSingle(imu, 0), BitConverter.ToSingle(imu, 4), BitConverter.ToSingle(imu, 8));
 			}
 		}) { IsBackground = true }.Start();
 	}

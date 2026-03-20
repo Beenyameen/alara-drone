@@ -4,6 +4,8 @@
 [ext_resource type="Script" uid="uid://bousjpbkqw4im" path="res://scripts/Feed.cs" id="1_rhrtr"]
 [ext_resource type="Script" uid="uid://dn4nywcxx2bh8" path="res://scripts/LateralVectorVisualiser.cs" id="2_fiq0f"]
 [ext_resource type="Script" uid="uid://denshwg7qci13" path="res://scripts/ThrottleVisualiser.cs" id="3_5unm8"]
+[ext_resource type="Script" uid="uid://d1heyal71wfew" path="res://scripts/HeadingVisualiser.cs" id="3_emwvj"]
+[ext_resource type="Script" uid="uid://bqdli46gpf5ws" path="res://scripts/AttitudeVisualiser.cs" id="4_6u5yo"]
 
 [node name="FeedLayout" type="HBoxContainer" unique_id=568833871]
 anchors_preset = 15
@@ -22,6 +24,18 @@ size_flags_vertical = 3
 layout_mode = 2
 script = ExtResource("1_fiq0f")
 
+[node name="AttitudeVisualiser" type="Control" parent="InstrumentsPanel" unique_id=463187928]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("4_6u5yo")
+
+[node name="HeadingVisualiser" type="Control" parent="InstrumentsPanel" unique_id=1166064605]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("3_emwvj")
+
 [node name="LateralVectorVisualiser" type="Control" parent="InstrumentsPanel" unique_id=981876234]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -30,6 +44,8 @@ script = ExtResource("2_fiq0f")
 
 [node name="ThrottleVisualiser" type="Control" parent="InstrumentsPanel" unique_id=1044881821]
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource("3_5unm8")
 
 [node name="Feed" type="TextureRect" parent="." unique_id=1137899106]
