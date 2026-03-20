@@ -19,6 +19,7 @@ public partial class Main : Control
 		FeedLayout = GD.Load<PackedScene>("res://scenes/feed.tscn").Instantiate<Control>();
 		AddChild(FeedLayout);
 		FeedNode = FeedLayout.GetNode<Feed>("Feed");
+		var throttleNode = FeedLayout.GetNode<ThrottleVisualiser>("InstrumentsPanel/ThrottleVisualiser");
 		
 		AddChild(World = GD.Load<PackedScene>("res://scenes/world.tscn").Instantiate<Node3D>());
 		SwitchScene(FeedLayout, Feed.Mode.Rgb);
@@ -95,7 +96,7 @@ public partial class Main : Control
 				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.R), 0, d, 0, 4);
 				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.P), 0, d, 4, 4);
 				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.Y), 0, d, 8, 4);
-				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.T), 0, d, 12, 4);
+				Buffer.BlockCopy(BitConverter.GetBytes(throttleNode.Throttle / 100f), 0, d, 12, 4);
 				pub.SendFrame(d);
 				if (sub.TryReceiveFrameBytes(TimeSpan.FromMilliseconds(100), out var imu) && imu.Length == 12)
 					ImuData = new Vector3(BitConverter.ToSingle(imu, 0), BitConverter.ToSingle(imu, 4), BitConverter.ToSingle(imu, 8));
