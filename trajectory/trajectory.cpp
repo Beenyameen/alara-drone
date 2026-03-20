@@ -19,7 +19,7 @@ int main() {
     sub.setsockopt(ZMQ_SUBSCRIBE, "", 0);
     int hwm = 2;
     sub.setsockopt(ZMQ_RCVHWM, &hwm, sizeof(hwm));
-    sub.connect("tcp://broker:12000");
+    sub.connect("tcp://host.docker.internal:12000");
 
     zmq::socket_t pub(ctx, ZMQ_PUB);
     pub.setsockopt(ZMQ_SNDHWM, &hwm, sizeof(hwm));

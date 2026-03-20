@@ -19,22 +19,47 @@ public partial class Main : Control
 		AddChild(World = GD.Load<PackedScene>("res://scenes/world.tscn").Instantiate<Node3D>());
 		SwitchScene(Rgb);
 		new Thread(() => {
+			using var udp = new System.Net.Sockets.UdpClient();
+			udp.Client.SetSocketOption(System.Net.Sockets.SocketOptionLevel.Socket, System.Net.Sockets.SocketOptionName.ReuseAddress, true);
+			udp.Client.Bind(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 10000));
+			udp.Client.ReceiveTimeout = 5000;
+			string ip = null;
+			while (ip == null)
+			{
+				try
+				{
+					var ep = new System.Net.IPEndPoint(System.Net.IPAddress.Any, 0);
+					var bytes = udp.Receive(ref ep);
+					string msg = System.Text.Encoding.UTF8.GetString(bytes);
+					if (msg.StartsWith("PI:")) ip = msg.Split(':')[1];
+				}
+				catch (System.Net.Sockets.SocketException) { }
+			}
 			using var sub = new SubscriberSocket();
 			sub.Options.ReceiveHighWatermark = 2;
-			sub.Connect("tcp://127.0.0.1:12000");
+			sub.Connect($"tcp://{ip}:11000");
 			sub.Subscribe("");
+			
+			using var pub = new PublisherSocket();
+			pub.Options.SendHighWatermark = 2;
+			pub.Bind("tcp://0.0.0.0:12000");
+
 			while (true)
 			{
-				if (Current != Rgb && Current != Depth)
-				{
-					Thread.Sleep(50);
-					continue;
-				}
 				NetMQMessage m = new NetMQMessage();
 				if (sub.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(50), ref m) && m.FrameCount >= 3)
 				{
-					RgbData = m[1].Buffer;
-					DepthData = m[2].Buffer;
+					short[] decompressed = Rvl.RvlCodec.Decompress(m[2].Buffer);
+					byte[] depthBytes = new byte[decompressed.Length * 2];
+					Buffer.BlockCopy(decompressed, 0, depthBytes, 0, depthBytes.Length);
+					
+					pub.SendMoreFrame(m[0].Buffer).SendMoreFrame(m[1].Buffer).SendFrame(depthBytes);
+
+					if (Current == Rgb || Current == Depth)
+					{
+						RgbData = m[1].Buffer;
+						DepthData = depthBytes;
+					}
 				}
 			}
 		}) { IsBackground = true }.Start();

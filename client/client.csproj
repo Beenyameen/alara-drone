@@ -6,5 +6,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="NetMQ" Version="4.0.2.2" />
+    <PackageReference Include="rvl" Version="1.0.4" />
   </ItemGroup>
 </Project>
