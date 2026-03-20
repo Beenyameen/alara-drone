@@ -6,6 +6,7 @@ using NetMQ.Sockets;
 
 public partial class Main : Control
 {
+	public Control FeedLayout;
 	public Feed FeedNode;
 	public Node3D World;
 	public Node Current;
@@ -13,9 +14,12 @@ public partial class Main : Control
 
 	public override void _Ready()
 	{
-		AddChild(FeedNode = GD.Load<PackedScene>("res://scenes/feed.tscn").Instantiate<Feed>());
+		FeedLayout = GD.Load<PackedScene>("res://scenes/feed.tscn").Instantiate<Control>();
+		AddChild(FeedLayout);
+		FeedNode = FeedLayout.GetNode<Feed>("Feed");
+		
 		AddChild(World = GD.Load<PackedScene>("res://scenes/world.tscn").Instantiate<Node3D>());
-		SwitchScene(FeedNode, Feed.Mode.Rgb);
+		SwitchScene(FeedLayout, Feed.Mode.Rgb);
 		new Thread(() => {
 			using var udp = new System.Net.Sockets.UdpClient();
 			udp.Client.SetSocketOption(System.Net.Sockets.SocketOptionLevel.Socket, System.Net.Sockets.SocketOptionName.ReuseAddress, true);
@@ -53,7 +57,7 @@ public partial class Main : Control
 					
 					pub.SendMoreFrame(m[0].Buffer).SendMoreFrame(m[1].Buffer).SendFrame(depthBytes);
 
-					if (Current == FeedNode)
+					if (Current == FeedLayout)
 					{
 						RgbData = m[1].Buffer;
 						DepthData = depthBytes;
@@ -80,11 +84,11 @@ public partial class Main : Control
 
 	public override void _Process(double delta)
 	{
-		if (Input.IsActionJustPressed("select_rgb")) SwitchScene(FeedNode, Feed.Mode.Rgb);
-		if (Input.IsActionJustPressed("select_depth")) SwitchScene(FeedNode, Feed.Mode.Depth);
+		if (Input.IsActionJustPressed("select_rgb")) SwitchScene(FeedLayout, Feed.Mode.Rgb);
+		if (Input.IsActionJustPressed("select_depth")) SwitchScene(FeedLayout, Feed.Mode.Depth);
 		if (Input.IsActionJustPressed("select_world")) SwitchScene(World);
 		
-		if (Current == FeedNode) 
+		if (Current == FeedLayout) 
 		{
 			if (FeedNode.CurrentMode == Feed.Mode.Rgb && RgbData != null) 
 			{ 
@@ -102,12 +106,12 @@ public partial class Main : Control
 	public void SwitchScene(Node n, Feed.Mode mode = Feed.Mode.Rgb)
 	{
 		Current = n;
-		FeedNode.Visible = FeedNode == n;
+		FeedLayout.Visible = FeedLayout == n;
 		World.Visible = World == n;
-		FeedNode.ProcessMode = FeedNode == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
+		FeedLayout.ProcessMode = FeedLayout == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		World.ProcessMode = World == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		
-		if (FeedNode == n)
+		if (FeedLayout == n)
 		{
 			FeedNode.CurrentMode = mode;
 		}

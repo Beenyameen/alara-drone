@@ -1,24 +1,37 @@
 [gd_scene format=3 uid="uid://yi4wskjttwr4"]
 
-[ext_resource type="Script" uid="uid://dcdg6hhbjfumg" path="res://scripts/Feed.cs" id="1_rhrtr"]
+[ext_resource type="Script" uid="uid://bousjpbkqw4im" path="res://scripts/Feed.cs" id="1_rhrtr"]
 [ext_resource type="Script" uid="uid://dn4nywcxx2bh8" path="res://scripts/LateralVectorVisualiser.cs" id="2_fiq0f"]
 
-[node name="Feed" type="TextureRect" unique_id=330152388]
+[node name="FeedLayout" type="HBoxContainer" unique_id=568833871]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="InstrumentsPanel" type="VBoxContainer" parent="." unique_id=1848348782]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LateralVectorVisualiser" type="Control" parent="InstrumentsPanel" unique_id=981876234]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("2_fiq0f")
+
+[node name="Feed" type="TextureRect" parent="." unique_id=1137899106]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 6.0
 expand_mode = 1
+stretch_mode = 5
 script = ExtResource("1_rhrtr")
 
-[node name="HUDContainer" type="Control" parent="." unique_id=1295247726]
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="LateralVectorVisualiser" type="Control" parent="HUDContainer" unique_id=981876234]
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
-script = ExtResource("2_fiq0f")
+[node name="RightSpacer" type="Control" parent="." unique_id=1983471890]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
