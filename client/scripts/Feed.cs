@@ -8,17 +8,20 @@ public partial class Feed : TextureRect
 
 	public Image Image = Image.CreateEmpty(640, 480, false, Image.Format.Rgb8);
 	private byte[] _rgbBuffer = new byte[640 * 480 * 3];
+	public int FramesReceived = 0;
 
 	public override void _Ready() => Texture = ImageTexture.CreateFromImage(Image);
 
 	public void UpdateFeedRgb(byte[] data)
 	{
+		FramesReceived++;
 		Image.LoadJpgFromBuffer(data);
 		((ImageTexture)Texture).Update(Image);
 	}
 
 	public void UpdateFeedDepth(byte[] data)
 	{
+		FramesReceived++;
 		for (int i = 0; i < 640 * 480; i++)
 		{
 			byte b = (byte)Math.Min(((data[i * 2] | (data[i * 2 + 1] << 8)) * 255) / 4000, 255);
