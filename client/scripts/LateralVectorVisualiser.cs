@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class AttitudeVisualiser : Control
+public partial class LateralVectorVisualiser : Control
 {
 	private Vector2 _currentInput = Vector2.Zero;
 

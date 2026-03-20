@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://yi4wskjttwr4"]
 
 [ext_resource type="Script" uid="uid://dcdg6hhbjfumg" path="res://scripts/Feed.cs" id="1_rhrtr"]
-[ext_resource type="Script" uid="uid://dn4nywcxx2bh8" path="res://scripts/AttitudeVisualiser.cs" id="2_fiq0f"]
+[ext_resource type="Script" uid="uid://dn4nywcxx2bh8" path="res://scripts/LateralVectorVisualiser.cs" id="2_fiq0f"]
 
 [node name="Feed" type="TextureRect" unique_id=330152388]
 anchors_preset = 15
@@ -13,12 +13,11 @@ expand_mode = 1
 script = ExtResource("1_rhrtr")
 
 [node name="HUDContainer" type="Control" parent="." unique_id=1295247726]
-layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="AttitudeVisualiser" type="Control" parent="HUDContainer" unique_id=981876234]
+[node name="LateralVectorVisualiser" type="Control" parent="HUDContainer" unique_id=981876234]
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
