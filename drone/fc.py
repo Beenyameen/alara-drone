@@ -28,6 +28,19 @@ def send_cmd(cmd, p1):
                 return
         time.sleep(0.1)
 
+def set_param(param_id, param_value, param_type):
+    while True:
+        master.mav.param_set_send(1, 1, param_id.encode('utf-8'), param_value, param_type)
+        t0 = time.time()
+        while time.time() - t0 < 0.5:
+            msg = master.recv_match(type='PARAM_VALUE', blocking=False)
+            if msg and msg.param_id == param_id:
+                return
+        time.sleep(0.1)
+
+print("Disable Auto-Disarm")
+set_param('DISARM_DELAY', 0.0, mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
+
 print("Set Mode")
 send_cmd(mavutil.mavlink.MAV_CMD_DO_SET_MODE, 1)
 
@@ -66,8 +79,5 @@ while True:
             break
         if msg.get_type() == 'ATTITUDE':
             pub.send(struct.pack('<fff', msg.roll, msg.pitch, msg.yaw))
-
-    if tgt[2] > 1050 and not master.motors_armed():
-        master.mav.command_long_send(1, 1, mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, 0, 1, 0, 0, 0, 0, 0, 0)
 
     time.sleep(0.1)
