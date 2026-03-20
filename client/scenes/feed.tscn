@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://csssqfypwntyw" path="res://scripts/FpsLabel.cs" id="1_fiq0f"]
 [ext_resource type="Script" uid="uid://bousjpbkqw4im" path="res://scripts/Feed.cs" id="1_rhrtr"]
 [ext_resource type="Script" uid="uid://dn4nywcxx2bh8" path="res://scripts/LateralVectorVisualiser.cs" id="2_fiq0f"]
+[ext_resource type="Script" uid="uid://denshwg7qci13" path="res://scripts/ThrottleVisualiser.cs" id="3_5unm8"]
 
 [node name="FeedLayout" type="HBoxContainer" unique_id=568833871]
 anchors_preset = 15
@@ -26,6 +27,10 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("2_fiq0f")
+
+[node name="ThrottleVisualiser" type="Control" parent="InstrumentsPanel" unique_id=1044881821]
+layout_mode = 2
+script = ExtResource("3_5unm8")
 
 [node name="Feed" type="TextureRect" parent="." unique_id=1137899106]
 layout_mode = 2
