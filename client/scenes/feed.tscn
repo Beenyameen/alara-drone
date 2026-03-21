@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://d1heyal71wfew" path="res://scripts/HeadingVisualiser.cs" id="3_emwvj"]
 [ext_resource type="Script" uid="uid://bqdli46gpf5ws" path="res://scripts/AttitudeVisualiser.cs" id="4_6u5yo"]
 [ext_resource type="Script" uid="uid://mojefpdow43y" path="res://scripts/IpLabel.cs" id="5_iplab"]
+[ext_resource type="Script" uid="uid://cbcf8bg3sir34" path="res://scripts/KeybindsPanel.cs" id="6_keybinds"]
 
 [node name="FeedLayout" type="HBoxContainer" unique_id=568833871]
 anchors_preset = 15
@@ -79,7 +80,8 @@ expand_mode = 1
 stretch_mode = 5
 script = ExtResource("1_rhrtr")
 
-[node name="RightSpacer" type="Control" parent="." unique_id=1983471890]
+[node name="KeybindsPanel" type="VBoxContainer" parent="." unique_id=573413537]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+script = ExtResource("6_keybinds")
