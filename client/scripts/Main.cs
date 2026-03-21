@@ -13,6 +13,8 @@ public partial class Main : Control
 	public byte[] RgbData, DepthData, TrajectoryData;
 	public Vector3 ImuData;
 	public string PiIp;
+	public volatile bool _armToggleRequested = false;
+	public volatile int _armState = -1;
 
 	public override void _Ready()
 	{
@@ -90,8 +92,42 @@ public partial class Main : Control
 			using var sub = new SubscriberSocket();
 			sub.Connect($"tcp://{PiIp}:16000");
 			sub.Subscribe("");
+			var req = new RequestSocket();
+			req.Connect($"tcp://{PiIp}:15001");
 			while (true)
 			{
+				if (_armToggleRequested)
+				{
+					_armToggleRequested = false;
+					req.SendFrame("TOGGLE_ARM");
+					if (req.TryReceiveFrameString(TimeSpan.FromMilliseconds(2000), out string reply))
+					{
+						if (reply == "1") _armState = 1;
+						else if (reply == "0") _armState = 0;
+					}
+					else
+					{
+						req.Dispose();
+						req = new RequestSocket();
+						req.Connect($"tcp://{PiIp}:15001");
+					}
+				}
+				else if (_armState == -1)
+				{
+					req.SendFrame("CHECK_ARM");
+					if (req.TryReceiveFrameString(TimeSpan.FromMilliseconds(500), out string reply))
+					{
+						if (reply == "1") _armState = 1;
+						else if (reply == "0") _armState = 0;
+					}
+					else
+					{
+						req.Dispose();
+						req = new RequestSocket();
+						req.Connect($"tcp://{PiIp}:15001");
+					}
+				}
+
 				var d = new byte[16];
 				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.R), 0, d, 0, 4);
 				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.P), 0, d, 4, 4);
@@ -106,6 +142,7 @@ public partial class Main : Control
 
 	public override void _Process(double delta)
 	{
+		if (Input.IsActionJustPressed("arm")) _armToggleRequested = true;
 		if (Input.IsActionJustPressed("select_rgb")) SwitchScene(FeedLayout, Feed.Mode.Rgb);
 		if (Input.IsActionJustPressed("select_depth")) SwitchScene(FeedLayout, Feed.Mode.Depth);
 		if (Input.IsActionJustPressed("select_world")) SwitchScene(World);

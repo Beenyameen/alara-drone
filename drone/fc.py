@@ -12,31 +12,36 @@ sub.setsockopt_string(zmq.SUBSCRIBE, "")
 pub = ctx.socket(zmq.PUB)
 pub.bind("tcp://0.0.0.0:16000")
 
+rep = ctx.socket(zmq.REP)
+rep.bind("tcp://0.0.0.0:15001")
+
 print("Wait Heartbeat")
 master = mavutil.mavlink_connection('/dev/serial0', baud=115200)
 master.wait_heartbeat()
 master.target_system = 1
 master.target_component = 1
 
-def send_cmd(cmd, p1):
-    while True:
-        master.mav.command_long_send(1, 1, cmd, 0, p1, 0, 0, 0, 0, 0, 0)
+def send_cmd(cmd, p1, p2=0):
+    for _ in range(5):
+        master.mav.command_long_send(1, 1, cmd, 0, p1, p2, 0, 0, 0, 0, 0)
         t0 = time.time()
         while time.time() - t0 < 0.5:
             msg = master.recv_match(type='COMMAND_ACK', blocking=False)
-            if msg and msg.command == cmd and msg.result == 0:
-                return
+            if msg and msg.command == cmd:
+                return msg.result == 0
         time.sleep(0.1)
+    return False
 
 def set_param(param_id, param_value, param_type):
-    while True:
+    for _ in range(5):
         master.mav.param_set_send(1, 1, param_id.encode('utf-8'), param_value, param_type)
         t0 = time.time()
         while time.time() - t0 < 0.5:
             msg = master.recv_match(type='PARAM_VALUE', blocking=False)
             if msg and msg.param_id == param_id:
-                return
+                return True
         time.sleep(0.1)
+    return False
 
 print("Disable Auto-Disarm")
 set_param('DISARM_DELAY', 0.0, mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
@@ -44,15 +49,26 @@ set_param('DISARM_DELAY', 0.0, mavutil.mavlink.MAV_PARAM_TYPE_REAL32)
 print("Set Mode")
 send_cmd(mavutil.mavlink.MAV_CMD_DO_SET_MODE, 1)
 
-print("Arm")
-send_cmd(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, 1)
-
 print("Active")
 cur = [1500, 1500, 1000, 1500]
 tgt = [1500, 1500, 1000, 1500]
 inc = [5, 5, 20, 10]
 
 while True:
+    try:
+        msg = rep.recv(flags=zmq.NOBLOCK)
+        if msg == b"TOGGLE_ARM":
+            target_state = 0 if master.motors_armed() else 1
+            success = send_cmd(mavutil.mavlink.MAV_CMD_COMPONENT_ARM_DISARM, target_state, 21196 if target_state == 0 else 0)
+            if success:
+                rep.send(b"1" if target_state else b"0")
+            else:
+                rep.send(b"-1")
+        elif msg == b"CHECK_ARM":
+            rep.send(b"1" if master.motors_armed() else b"0")
+    except zmq.Again:
+        pass
+
     while True:
         try:
             msg = sub.recv(flags=zmq.NOBLOCK)

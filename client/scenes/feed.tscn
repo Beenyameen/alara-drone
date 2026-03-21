@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://csssqfypwntyw" path="res://scripts/FpsLabel.cs" id="1_fiq0f"]
 [ext_resource type="Script" uid="uid://bousjpbkqw4im" path="res://scripts/Feed.cs" id="1_rhrtr"]
 [ext_resource type="Script" uid="uid://dn4nywcxx2bh8" path="res://scripts/LateralVectorVisualiser.cs" id="2_fiq0f"]
+[ext_resource type="Script" uid="uid://j73kvs4rt6q4" path="res://scripts/ArmedStateLabel.cs" id="2_xqvqw"]
 [ext_resource type="Script" uid="uid://denshwg7qci13" path="res://scripts/ThrottleVisualiser.cs" id="3_5unm8"]
 [ext_resource type="Script" uid="uid://d1heyal71wfew" path="res://scripts/HeadingVisualiser.cs" id="3_emwvj"]
 [ext_resource type="Script" uid="uid://bqdli46gpf5ws" path="res://scripts/AttitudeVisualiser.cs" id="4_6u5yo"]
@@ -23,6 +24,10 @@ size_flags_vertical = 3
 [node name="FPSLabel" type="Label" parent="InstrumentsPanel" unique_id=764624382]
 layout_mode = 2
 script = ExtResource("1_fiq0f")
+
+[node name="ArmedStateLabel" type="Label" parent="InstrumentsPanel" unique_id=192367451]
+layout_mode = 2
+script = ExtResource("2_xqvqw")
 
 [node name="AttitudeVisualiser" type="Control" parent="InstrumentsPanel" unique_id=463187928]
 layout_mode = 2
