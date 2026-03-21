@@ -1,12 +1,14 @@
 services:
   trajectory:
     build: ./trajectory
+    image: enord-trajectory-service
     ports:
       - "13000:13000/tcp"
       - "14000:14000/tcp"
 
   reconstruction:
     build: ./reconstruction
+    image: enord-reconstruction-service
     ports:
       - "15000:15000/tcp"
     depends_on:
