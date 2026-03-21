@@ -22,6 +22,7 @@ public partial class KeybindsPanel : VBoxContainer
 					{
 						Text = $"{keyName} = {displayName}"
 					};
+					label.AddThemeFontSizeOverride("font_size", 24);
 					
 					AddChild(label);
 				}

@@ -80,7 +80,16 @@ expand_mode = 1
 stretch_mode = 5
 script = ExtResource("1_rhrtr")
 
-[node name="KeybindsPanel" type="VBoxContainer" parent="." unique_id=573413537]
+[node name="KeybindsMargin" type="MarginContainer" parent="." unique_id=2345678901]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="KeybindsPanel" type="VBoxContainer" parent="KeybindsMargin" unique_id=573413537]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
