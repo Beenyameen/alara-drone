@@ -28,7 +28,7 @@ public partial class Player : CharacterBody3D
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (Input.IsActionJustPressed("reset"))
+		if (Input.IsActionJustPressed("world_reset"))
 		{
 			Position = StartPos;
 			Rotation = StartRot;
@@ -36,15 +36,15 @@ public partial class Player : CharacterBody3D
 			Velocity = Vector3.Zero;
 			return;
 		}
-		Vector2 i = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+		Vector2 i = Input.GetVector("global_move_left", "global_move_right", "global_move_forward", "global_move_back");
 		Vector3 d = (Transform.Basis * new Vector3(i.X, 0, i.Y)).Normalized();
-		float s = 2.0f * (Input.IsActionPressed("boost") ? 1.5f : 1.0f);
+		float s = 2.0f * (Input.IsActionPressed("world_boost") ? 1.5f : 1.0f);
 		Vector3 v = Velocity;
 		v.X = d.X * s;
 		v.Z = d.Z * s;
 		v.Y = 0;
-		if (Input.IsActionPressed("ascend")) v.Y += s;
-		if (Input.IsActionPressed("descend")) v.Y -= s;
+		if (Input.IsActionPressed("world_ascend")) v.Y += s;
+		if (Input.IsActionPressed("world_descend")) v.Y -= s;
 		Velocity = v;
 		MoveAndSlide();
 	}

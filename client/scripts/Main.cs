@@ -206,10 +206,10 @@ public partial class Main : Control
 
 	public override void _Process(double delta)
 	{
-		if (Input.IsActionJustPressed("arm")) _armToggleRequested = true;
-		if (Input.IsActionJustPressed("select_rgb")) SwitchScene(FeedLayout, Feed.Mode.Rgb);
-		if (Input.IsActionJustPressed("select_depth")) SwitchScene(FeedLayout, Feed.Mode.Depth);
-		if (Input.IsActionJustPressed("select_world")) SwitchScene(World);
+		if (Input.IsActionJustPressed("pilot_arm")) _armToggleRequested = true;
+		if (Input.IsActionJustPressed("global_select_rgb")) SwitchScene(FeedLayout, Feed.Mode.Rgb);
+		if (Input.IsActionJustPressed("global_select_depth")) SwitchScene(FeedLayout, Feed.Mode.Depth);
+		if (Input.IsActionJustPressed("global_select_world")) SwitchScene(World);
 		
 		if (Current == FeedLayout) 
 		{

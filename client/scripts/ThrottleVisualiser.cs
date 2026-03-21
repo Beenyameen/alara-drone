@@ -32,17 +32,17 @@ public partial class ThrottleVisualiser : Control
 
 	public override void _Process(double delta)
 	{
-		if (Input.IsActionJustPressed("ui_up"))
+		if (Input.IsActionJustPressed("pilot_throttle_up"))
 		{
 			Throttle += 1;
 			_holdTimer = InitialDelay;
 		}
-		else if (Input.IsActionJustPressed("ui_down"))
+		else if (Input.IsActionJustPressed("pilot_throttle_down"))
 		{
 			Throttle -= 1;
 			_holdTimer = InitialDelay;
 		}
-		else if (Input.IsActionPressed("ui_up"))
+		else if (Input.IsActionPressed("pilot_throttle_up"))
 		{
 			_holdTimer -= (float)delta;
 			if (_holdTimer <= 0)
@@ -51,7 +51,7 @@ public partial class ThrottleVisualiser : Control
 				_holdTimer = RepeatRate;
 			}
 		}
-		else if (Input.IsActionPressed("ui_down"))
+		else if (Input.IsActionPressed("pilot_throttle_down"))
 		{
 			_holdTimer -= (float)delta;
 			if (_holdTimer <= 0)

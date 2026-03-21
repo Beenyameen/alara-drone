@@ -140,7 +140,7 @@ public partial class World : Node3D
 
 	public override void _Process(double delta)
 	{
-		if (Input.IsActionJustPressed("floor"))
+		if (Input.IsActionJustPressed("world_floor"))
 		{
 			Mm.Visible = !Mm.Visible;
 			Sb.ProcessMode = Mm.Visible ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
@@ -148,13 +148,13 @@ public partial class World : Node3D
 
 		if (CurrentMaxY > CurrentMinY)
 		{
-			if (Input.IsActionPressed("ui_up"))
+			if (Input.IsActionPressed("world_ceiling_up"))
 			{
 				_isCeilingAutoTracking = false;
 				CeilingY = Mathf.Min(CeilingY + (float)delta * 2.0f, CurrentMaxY + 0.1f);
 				((ShaderMaterial)((BoxMesh)PointsMm.Multimesh.Mesh).Material).SetShaderParameter("ceiling_y", CeilingY);
 			}
-			if (Input.IsActionPressed("ui_down"))
+			if (Input.IsActionPressed("world_ceiling_down"))
 			{
 				_isCeilingAutoTracking = false;
 				CeilingY = Mathf.Max(CeilingY - (float)delta * 2.0f, CurrentMinY - 0.1f);

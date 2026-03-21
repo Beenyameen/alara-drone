@@ -23,7 +23,7 @@ public partial class LateralVectorVisualiser : Control
 	{
 		// Poll input directly. This automatically normalizes the vector!
 		// Using the actual bindings found in project.godot
-		Vector2 inputVector = Input.GetVector("move_left", "move_right", "move_forward", "move_back");
+		Vector2 inputVector = Input.GetVector("global_move_left", "global_move_right", "global_move_forward", "global_move_back");
 		
 		if (_currentInput != inputVector)
 		{
