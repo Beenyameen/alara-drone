@@ -7,6 +7,7 @@
 [ext_resource type="Script" uid="uid://denshwg7qci13" path="res://scripts/ThrottleVisualiser.cs" id="3_5unm8"]
 [ext_resource type="Script" uid="uid://d1heyal71wfew" path="res://scripts/HeadingVisualiser.cs" id="3_emwvj"]
 [ext_resource type="Script" uid="uid://bqdli46gpf5ws" path="res://scripts/AttitudeVisualiser.cs" id="4_6u5yo"]
+[ext_resource type="Script" uid="uid://mojefpdow43y" path="res://scripts/IpLabel.cs" id="5_iplab"]
 
 [node name="FeedLayout" type="HBoxContainer" unique_id=568833871]
 anchors_preset = 15
@@ -30,12 +31,19 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
+[node name="IPLabel" type="Label" parent="InstrumentsMargin/InstrumentsPanel" unique_id=987654321]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+script = ExtResource("5_iplab")
+
 [node name="FPSLabel" type="Label" parent="InstrumentsMargin/InstrumentsPanel" unique_id=764624382]
 layout_mode = 2
+theme_override_font_sizes/font_size = 24
 script = ExtResource("1_fiq0f")
 
 [node name="ArmedStateLabel" type="Label" parent="InstrumentsMargin/InstrumentsPanel" unique_id=192367451]
 layout_mode = 2
+theme_override_font_sizes/font_size = 24
 script = ExtResource("2_xqvqw")
 
 [node name="AttitudeVisualiser" type="Control" parent="InstrumentsMargin/InstrumentsPanel" unique_id=463187928]

@@ -1,10 +1,11 @@
 using Godot;
 using System;
 
-public partial class ArmedStateLabel : Label
+public partial class IpLabel : Label
 {
 	private Main _main;
 
+	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
 		Node n = this;
@@ -12,24 +13,18 @@ public partial class ArmedStateLabel : Label
 		_main = n as Main;
 	}
 
+	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
 		if (_main != null)
 		{
-			if (_main._armState == 1)
+			if (string.IsNullOrEmpty(_main.PiIp))
 			{
-				Text = "STATE: ARMED";
-				Modulate = Colors.Red;
-			}
-			else if (_main._armState == 0)
-			{
-				Text = "STATE: DISARMED";
-				Modulate = Colors.Green;
+				Text = "IP: UNKNOWN";
 			}
 			else
 			{
-				Text = "STATE: UNKNOWN";
-				Modulate = Colors.Gray;
+				Text = "IP: " + _main.PiIp;
 			}
 		}
 	}
