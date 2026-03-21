@@ -21,7 +21,7 @@ public partial class Main : Control
 		FeedLayout = GD.Load<PackedScene>("res://scenes/feed.tscn").Instantiate<Control>();
 		AddChild(FeedLayout);
 		FeedNode = FeedLayout.GetNode<Feed>("Feed");
-		var throttleNode = FeedLayout.GetNode<ThrottleVisualiser>("InstrumentsPanel/ThrottleVisualiser");
+		var throttleNode = FeedLayout.GetNode<ThrottleVisualiser>("InstrumentsMargin/InstrumentsPanel/ThrottleVisualiser");
 		
 		AddChild(World = GD.Load<PackedScene>("res://scenes/world.tscn").Instantiate<Node3D>());
 		SwitchScene(FeedLayout, Feed.Mode.Rgb);

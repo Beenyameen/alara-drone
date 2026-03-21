@@ -7,7 +7,9 @@ public partial class ArmedStateLabel : Label
 
 	public override void _Ready()
 	{
-		_main = GetParent().GetParent().GetParent() as Main;
+		Node n = this;
+		while (n != null && !(n is Main)) n = n.GetParent();
+		_main = n as Main;
 	}
 
 	public override void _Process(double delta)

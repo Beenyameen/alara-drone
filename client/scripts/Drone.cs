@@ -9,7 +9,9 @@ public partial class Drone : Node3D
 
 	public override void _Ready()
 	{
-		M = GetParent().GetParent().GetParent() as Main;
+		Node n = this;
+		while (n != null && !(n is Main)) n = n.GetParent();
+		M = n as Main;
 		var m = new StandardMaterial3D { AlbedoColor = new Color(1, 0.2f, 0.2f), ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded };
 		var greenMat = new StandardMaterial3D { AlbedoColor = new Color(0, 1, 0), EmissionEnabled = true, Emission = new Color(0, 1, 0), EmissionEnergyMultiplier = 4.0f };
 		GetParent().CallDeferred("add_child", Pts = new MultiMeshInstance3D { CastShadow = GeometryInstance3D.ShadowCastingSetting.Off, Multimesh = new MultiMesh { TransformFormat = MultiMesh.TransformFormatEnum.Transform3D, InstanceCount = 50000, Mesh = new SphereMesh { Radius = 0.02f, Height = 0.04f, Material = m } } });

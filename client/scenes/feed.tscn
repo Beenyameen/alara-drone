@@ -16,38 +16,47 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="InstrumentsPanel" type="VBoxContainer" parent="." unique_id=1848348782]
+[node name="InstrumentsMargin" type="MarginContainer" parent="." unique_id=1324545007]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="InstrumentsPanel" type="VBoxContainer" parent="InstrumentsMargin" unique_id=1848348782]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="FPSLabel" type="Label" parent="InstrumentsPanel" unique_id=764624382]
+[node name="FPSLabel" type="Label" parent="InstrumentsMargin/InstrumentsPanel" unique_id=764624382]
 layout_mode = 2
 script = ExtResource("1_fiq0f")
 
-[node name="ArmedStateLabel" type="Label" parent="InstrumentsPanel" unique_id=192367451]
+[node name="ArmedStateLabel" type="Label" parent="InstrumentsMargin/InstrumentsPanel" unique_id=192367451]
 layout_mode = 2
 script = ExtResource("2_xqvqw")
 
-[node name="AttitudeVisualiser" type="Control" parent="InstrumentsPanel" unique_id=463187928]
+[node name="AttitudeVisualiser" type="Control" parent="InstrumentsMargin/InstrumentsPanel" unique_id=463187928]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("4_6u5yo")
 
-[node name="HeadingVisualiser" type="Control" parent="InstrumentsPanel" unique_id=1166064605]
+[node name="HeadingVisualiser" type="Control" parent="InstrumentsMargin/InstrumentsPanel" unique_id=1166064605]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("3_emwvj")
 
-[node name="LateralVectorVisualiser" type="Control" parent="InstrumentsPanel" unique_id=981876234]
+[node name="LateralVectorVisualiser" type="Control" parent="InstrumentsMargin/InstrumentsPanel" unique_id=981876234]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("2_fiq0f")
 
-[node name="ThrottleVisualiser" type="Control" parent="InstrumentsPanel" unique_id=1044881821]
+[node name="ThrottleVisualiser" type="Control" parent="InstrumentsMargin/InstrumentsPanel" unique_id=1044881821]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
