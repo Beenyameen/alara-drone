@@ -20,7 +20,7 @@ public partial class FpsLabel : Label
 		if (_timer >= 1.0)
 		{
 			int currentFrames = _feed.FramesReceived;
-			int fps = (int)Math.Round((currentFrames - _lastFrames) / _timer);
+			int fps = Math.Max(0, (int)Math.Round((currentFrames - _lastFrames) / _timer));
 			Text = $"FPS: {fps}";
 			_lastFrames = currentFrames;
 			_timer = 0;

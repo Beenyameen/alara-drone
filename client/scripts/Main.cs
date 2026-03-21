@@ -29,33 +29,53 @@ public partial class Main : Control
 			using var udp = new System.Net.Sockets.UdpClient();
 			udp.Client.SetSocketOption(System.Net.Sockets.SocketOptionLevel.Socket, System.Net.Sockets.SocketOptionName.ReuseAddress, true);
 			udp.Client.Bind(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 10000));
-			udp.Client.ReceiveTimeout = 5000;
-			string ip = null;
-			while (ip == null)
+			udp.Client.ReceiveTimeout = 2000;
+			while (true)
 			{
 				try
 				{
 					var ep = new System.Net.IPEndPoint(System.Net.IPAddress.Any, 0);
 					var bytes = udp.Receive(ref ep);
 					string msg = System.Text.Encoding.UTF8.GetString(bytes);
-					if (msg.StartsWith("PI:")) PiIp = ip = msg.Split(':')[1];
+					if (msg.StartsWith("PI:")) PiIp = msg.Split(':')[1];
 				}
 				catch (System.Net.Sockets.SocketException) { }
 			}
-			using var sub = new SubscriberSocket();
-			sub.Options.ReceiveHighWatermark = 2;
-			sub.Connect($"tcp://{ip}:11000");
-			sub.Subscribe("");
-			
+		}) { IsBackground = true }.Start();
+		new Thread(() => {
 			using var pub = new PublisherSocket();
 			pub.Options.SendHighWatermark = 2;
 			pub.Bind("tcp://0.0.0.0:12000");
 
+			string currentIp = null;
+			SubscriberSocket sub = null;
+			int timeoutCount = 0;
+
 			while (true)
 			{
-				NetMQMessage m = new NetMQMessage();
-				if (sub.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(50), ref m) && m.FrameCount >= 3)
+				if (PiIp != currentIp)
 				{
+					currentIp = PiIp;
+					if (sub != null) sub.Dispose();
+					if (currentIp != null)
+					{
+						sub = new SubscriberSocket();
+						sub.Options.ReceiveHighWatermark = 2;
+						sub.Connect($"tcp://{currentIp}:11000");
+						sub.Subscribe("");
+					}
+				}
+
+				if (sub == null)
+				{
+					Thread.Sleep(100);
+					continue;
+				}
+
+				NetMQMessage m = new NetMQMessage();
+				if (sub.TryReceiveMultipartMessage(TimeSpan.FromMilliseconds(500), ref m) && m.FrameCount >= 3)
+				{
+					timeoutCount = 0;
 					short[] decompressed = Rvl.RvlCodec.Decompress(m[2].Buffer);
 					byte[] depthBytes = new byte[decompressed.Length * 2];
 					Buffer.BlockCopy(decompressed, 0, depthBytes, 0, depthBytes.Length);
@@ -66,6 +86,16 @@ public partial class Main : Control
 					{
 						RgbData = m[1].Buffer;
 						DepthData = depthBytes;
+					}
+				}
+				else
+				{
+					timeoutCount++;
+					if (timeoutCount > 10) currentIp = null;
+					if (Current == FeedLayout)
+					{
+						RgbData = Array.Empty<byte>();
+						DepthData = Array.Empty<byte>();
 					}
 				}
 			}
@@ -86,16 +116,39 @@ public partial class Main : Control
 			}
 		}) { IsBackground = true }.Start();
 		new Thread(() => {
-			while (PiIp == null) Thread.Sleep(100);
-			using var pub = new PublisherSocket();
-			pub.Connect($"tcp://{PiIp}:15000");
-			using var sub = new SubscriberSocket();
-			sub.Connect($"tcp://{PiIp}:16000");
-			sub.Subscribe("");
-			var req = new RequestSocket();
-			req.Connect($"tcp://{PiIp}:15001");
+			string currentIp = null;
+			PublisherSocket pub = null;
+			SubscriberSocket sub = null;
+			RequestSocket req = null;
+			int timeoutCount = 0;
+
 			while (true)
 			{
+				if (PiIp != currentIp)
+				{
+					currentIp = PiIp;
+					if (pub != null) pub.Dispose();
+					if (sub != null) sub.Dispose();
+					if (req != null) req.Dispose();
+
+					if (currentIp != null)
+					{
+						pub = new PublisherSocket();
+						pub.Connect($"tcp://{currentIp}:15000");
+						sub = new SubscriberSocket();
+						sub.Connect($"tcp://{currentIp}:16000");
+						sub.Subscribe("");
+						req = new RequestSocket();
+						req.Connect($"tcp://{currentIp}:15001");
+					}
+				}
+
+				if (currentIp == null)
+				{
+					Thread.Sleep(100);
+					continue;
+				}
+
 				if (_armToggleRequested)
 				{
 					_armToggleRequested = false;
@@ -109,7 +162,7 @@ public partial class Main : Control
 					{
 						req.Dispose();
 						req = new RequestSocket();
-						req.Connect($"tcp://{PiIp}:15001");
+						req.Connect($"tcp://{currentIp}:15001");
 					}
 				}
 				else if (_armState == -1)
@@ -124,7 +177,7 @@ public partial class Main : Control
 					{
 						req.Dispose();
 						req = new RequestSocket();
-						req.Connect($"tcp://{PiIp}:15001");
+						req.Connect($"tcp://{currentIp}:15001");
 					}
 				}
 
@@ -134,8 +187,19 @@ public partial class Main : Control
 				Buffer.BlockCopy(BitConverter.GetBytes(FeedNode.Y), 0, d, 8, 4);
 				Buffer.BlockCopy(BitConverter.GetBytes(throttleNode.Throttle / 100f), 0, d, 12, 4);
 				pub.SendFrame(d);
-				if (sub.TryReceiveFrameBytes(TimeSpan.FromMilliseconds(100), out var imu) && imu.Length == 12)
+
+				if (sub.TryReceiveFrameBytes(TimeSpan.FromMilliseconds(500), out var imu) && imu.Length == 12)
+				{
+					timeoutCount = 0;
 					ImuData = new Vector3(BitConverter.ToSingle(imu, 0), BitConverter.ToSingle(imu, 4), BitConverter.ToSingle(imu, 8));
+				}
+				else
+				{
+					timeoutCount++;
+					if (timeoutCount > 10) currentIp = null;
+					ImuData = Vector3.Zero;
+					_armState = -1;
+				}
 			}
 		}) { IsBackground = true }.Start();
 	}

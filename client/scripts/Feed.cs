@@ -24,6 +24,13 @@ public partial class Feed : TextureRect
 	}
 	public void UpdateFeedRgb(byte[] data)
 	{
+		if (data == null || data.Length == 0)
+		{
+			Image.Fill(Colors.Black);
+			((ImageTexture)Texture).Update(Image);
+			FramesReceived = 0;
+			return;
+		}
 		FramesReceived++;
 		Image.LoadJpgFromBuffer(data);
 		((ImageTexture)Texture).Update(Image);
@@ -31,6 +38,13 @@ public partial class Feed : TextureRect
 
 	public void UpdateFeedDepth(byte[] data)
 	{
+		if (data == null || data.Length == 0)
+		{
+			Image.Fill(Colors.Black);
+			((ImageTexture)Texture).Update(Image);
+			FramesReceived = 0;
+			return;
+		}
 		FramesReceived++;
 		for (int i = 0; i < 640 * 480; i++)
 		{
