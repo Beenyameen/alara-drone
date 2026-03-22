@@ -25,12 +25,12 @@ sock.bind("tcp://0.0.0.0:11000")
 while True:
     frames = pipeline.wait_for_frames(1000)
     if frames is None: continue
-    
+
     cframe = frames.get_color_frame()
     dframe = frames.get_depth_frame()
-    
+
     if cframe is None or dframe is None: continue
-    
+
     sock.send_multipart([
         struct.pack("d", time.time()),
         cframe.get_data(),

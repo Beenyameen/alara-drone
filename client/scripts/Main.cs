@@ -22,7 +22,7 @@ public partial class Main : Control
 		AddChild(FeedLayout);
 		FeedNode = FeedLayout.GetNode<Feed>("Feed");
 		var throttleNode = FeedLayout.GetNode<ThrottleVisualiser>("InstrumentsMargin/InstrumentsPanel/ThrottleVisualiser");
-		
+
 		AddChild(World = GD.Load<PackedScene>("res://scenes/world.tscn").Instantiate<Node3D>());
 		SwitchScene(FeedLayout, Feed.Mode.Rgb);
 		new Thread(() => {
@@ -30,6 +30,8 @@ public partial class Main : Control
 			udp.Client.SetSocketOption(System.Net.Sockets.SocketOptionLevel.Socket, System.Net.Sockets.SocketOptionName.ReuseAddress, true);
 			udp.Client.Bind(new System.Net.IPEndPoint(System.Net.IPAddress.Any, 10000));
 			udp.Client.ReceiveTimeout = 2000;
+			GD.Print("[DISCOVERY] Listening UDP on 0.0.0.0:10000");
+			string lastLoggedPiIp = null;
 			while (true)
 			{
 				try
@@ -37,15 +39,40 @@ public partial class Main : Control
 					var ep = new System.Net.IPEndPoint(System.Net.IPAddress.Any, 0);
 					var bytes = udp.Receive(ref ep);
 					string msg = System.Text.Encoding.UTF8.GetString(bytes);
-					if (msg.StartsWith("PI:")) PiIp = msg.Split(':')[1];
+					if (msg.StartsWith("PI:"))
+					{
+						PiIp = msg.Split(':')[1];
+						if (PiIp != lastLoggedPiIp)
+						{
+							GD.Print($"[DISCOVERY] PI IP discovered: {PiIp}");
+							lastLoggedPiIp = PiIp;
+						}
+					}
 				}
 				catch (System.Net.Sockets.SocketException) { }
 			}
 		}) { IsBackground = true }.Start();
 		new Thread(() => {
-			using var pub = new PublisherSocket();
-			pub.Options.SendHighWatermark = 2;
-			pub.Bind("tcp://0.0.0.0:12000");
+			PublisherSocket pub = null;
+			bool localPipelineEnabled = false;
+			try
+			{
+				pub = new PublisherSocket();
+				pub.Options.SendHighWatermark = 2;
+				pub.Bind("tcp://0.0.0.0:12000");
+				localPipelineEnabled = true;
+				GD.Print("[LOCAL PIPELINE] Publishing RGBD to tcp://0.0.0.0:12000");
+			}
+			catch (NetMQ.AddressAlreadyInUseException)
+			{
+				GD.PushWarning("[LOCAL PIPELINE] tcp://0.0.0.0:12000 already in use, continue without local relay");
+				localPipelineEnabled = false;
+			}
+			catch (Exception e)
+			{
+				GD.PushError($"[LOCAL PIPELINE] Init failed: {e.Message}");
+				localPipelineEnabled = false;
+			}
 
 			string currentIp = null;
 			SubscriberSocket sub = null;
@@ -63,6 +90,11 @@ public partial class Main : Control
 						sub.Options.ReceiveHighWatermark = 2;
 						sub.Connect($"tcp://{currentIp}:11000");
 						sub.Subscribe("");
+						GD.Print($"[CAMERA] Connected to tcp://{currentIp}:11000");
+					}
+					else
+					{
+						GD.Print("[CAMERA] PI IP lost, waiting for rediscovery...");
 					}
 				}
 
@@ -79,8 +111,11 @@ public partial class Main : Control
 					short[] decompressed = Rvl.RvlCodec.Decompress(m[2].Buffer);
 					byte[] depthBytes = new byte[decompressed.Length * 2];
 					Buffer.BlockCopy(decompressed, 0, depthBytes, 0, depthBytes.Length);
-					
-					pub.SendMoreFrame(m[0].Buffer).SendMoreFrame(m[1].Buffer).SendFrame(depthBytes);
+
+					if (localPipelineEnabled && pub != null)
+					{
+						pub.SendMoreFrame(m[0].Buffer).SendMoreFrame(m[1].Buffer).SendFrame(depthBytes);
+					}
 
 					if (Current == FeedLayout)
 					{
@@ -91,7 +126,11 @@ public partial class Main : Control
 				else
 				{
 					timeoutCount++;
-					if (timeoutCount > 10) currentIp = null;
+					if (timeoutCount > 10)
+					{
+						GD.Print("[CAMERA] Stream timeout, forcing reconnect");
+						currentIp = null;
+					}
 					if (Current == FeedLayout)
 					{
 						RgbData = Array.Empty<byte>();
@@ -105,6 +144,7 @@ public partial class Main : Control
 			sub.Options.ReceiveHighWatermark = 2;
 			sub.Connect("tcp://127.0.0.1:13000");
 			sub.Subscribe("");
+			GD.Print("[TRAJECTORY] Subscribed to tcp://127.0.0.1:13000");
 			while (true)
 			{
 				if (Current != World)
@@ -140,6 +180,11 @@ public partial class Main : Control
 						sub.Subscribe("");
 						req = new RequestSocket();
 						req.Connect($"tcp://{currentIp}:15001");
+						GD.Print($"[FC] Connected pub/sub/req to PI {currentIp} (15000/16000/15001)");
+					}
+					else
+					{
+						GD.Print("[FC] PI IP lost, waiting for rediscovery...");
 					}
 				}
 
@@ -152,14 +197,17 @@ public partial class Main : Control
 				if (_armToggleRequested)
 				{
 					_armToggleRequested = false;
+					GD.Print("[FC] Sending TOGGLE_ARM");
 					req.SendFrame("TOGGLE_ARM");
 					if (req.TryReceiveFrameString(TimeSpan.FromMilliseconds(2000), out string reply))
 					{
 						if (reply == "1") _armState = 1;
 						else if (reply == "0") _armState = 0;
+						GD.Print($"[FC] TOGGLE_ARM reply: {reply}");
 					}
 					else
 					{
+						GD.Print("[FC] TOGGLE_ARM timeout, recreating REQ socket");
 						req.Dispose();
 						req = new RequestSocket();
 						req.Connect($"tcp://{currentIp}:15001");
@@ -196,7 +244,11 @@ public partial class Main : Control
 				else
 				{
 					timeoutCount++;
-					if (timeoutCount > 10) currentIp = null;
+					if (timeoutCount > 10)
+					{
+						GD.Print("[FC] IMU timeout, forcing reconnect");
+						currentIp = null;
+					}
 					ImuData = Vector3.Zero;
 					_armState = -1;
 				}
@@ -210,18 +262,18 @@ public partial class Main : Control
 		if (Input.IsActionJustPressed("global_select_rgb")) SwitchScene(FeedLayout, Feed.Mode.Rgb);
 		if (Input.IsActionJustPressed("global_select_depth")) SwitchScene(FeedLayout, Feed.Mode.Depth);
 		if (Input.IsActionJustPressed("global_select_world")) SwitchScene(World);
-		
-		if (Current == FeedLayout) 
+
+		if (Current == FeedLayout)
 		{
-			if (FeedNode.CurrentMode == Feed.Mode.Rgb && RgbData != null) 
-			{ 
-				FeedNode.UpdateFeedRgb(RgbData); 
-				RgbData = null; 
+			if (FeedNode.CurrentMode == Feed.Mode.Rgb && RgbData != null)
+			{
+				FeedNode.UpdateFeedRgb(RgbData);
+				RgbData = null;
 			}
-			else if (FeedNode.CurrentMode == Feed.Mode.Depth && DepthData != null) 
-			{ 
-				FeedNode.UpdateFeedDepth(DepthData); 
-				DepthData = null; 
+			else if (FeedNode.CurrentMode == Feed.Mode.Depth && DepthData != null)
+			{
+				FeedNode.UpdateFeedDepth(DepthData);
+				DepthData = null;
 			}
 		}
 	}
@@ -233,12 +285,12 @@ public partial class Main : Control
 		World.Visible = World == n;
 		FeedLayout.ProcessMode = FeedLayout == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
 		World.ProcessMode = World == n ? ProcessModeEnum.Inherit : ProcessModeEnum.Disabled;
-		
+
 		if (FeedLayout == n)
 		{
 			FeedNode.CurrentMode = mode;
 		}
-		
+
 		if (n != World) Input.MouseMode = Input.MouseModeEnum.Visible;
 	}
 }
