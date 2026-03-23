@@ -16,8 +16,8 @@ public partial class Feed : TextureRect
 
 	public override void _Process(double delta)
 	{
-	        if (Input.IsKeyPressed(Key.Q)) Y = Mathf.Clamp(Y - (float)delta * 2f, -1, 1);
-	        else if (Input.IsKeyPressed(Key.E)) Y = Mathf.Clamp(Y + (float)delta * 2f, -1, 1);
+	        if (Input.IsActionPressed("pilot_yaw_left")) Y = Mathf.Clamp(Y - (float)delta * 2f, -1, 1);
+	        else if (Input.IsActionPressed("pilot_yaw_right")) Y = Mathf.Clamp(Y + (float)delta * 2f, -1, 1);
 	        else Y = Mathf.MoveToward(Y, 0, (float)delta * 2f);
 	        var i = Input.GetVector("global_move_left", "global_move_right", "global_move_forward", "global_move_back");
 	        R = i.X; P = i.Y;

@@ -98,6 +98,8 @@ while True:
         cur[0] = 1500
         tgt[1] = 1500
         cur[1] = 1500
+        tgt[3] = 1500
+        cur[3] = 1500
         
     if time.time() - last_cmd_time > 1.0:
         tgt[2] = 1000
