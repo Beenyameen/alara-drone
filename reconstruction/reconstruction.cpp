@@ -42,7 +42,7 @@ void receive_loop(std::queue<FrameData>& buffer, std::mutex& buffer_mutex) {
         fd.ts = *static_cast<double*>(m0.data());
         fd.color = cv::imdecode(std::vector<uchar>(static_cast<uchar*>(m1.data()), static_cast<uchar*>(m1.data()) + m1.size()), cv::IMREAD_COLOR);
         fd.depth = cv::Mat(480, 640, CV_16U, m2.data()).clone();
-        
+
         float* p = static_cast<float*>(m3.data());
         fd.pose = rtabmap::Transform(
             p[0], p[4], p[8],  p[12],
@@ -62,12 +62,12 @@ void receive_loop(std::queue<FrameData>& buffer, std::mutex& buffer_mutex) {
 void rep_loop() {
     zmq::context_t ctx(1);
     zmq::socket_t rep(ctx, ZMQ_REP);
-    rep.bind("tcp://0.0.0.0:15000");
+    rep.bind("tcp://0.0.0.0:15500");
 
     while (true) {
         zmq::message_t req;
         rep.recv(&req);
-        
+
         std::lock_guard<std::mutex> lock(cloud_mutex);
 
         zmq::message_t rep_msg(point_cloud.size() * sizeof(float));
@@ -111,9 +111,9 @@ int main() {
 
         if (has_data) {
             rtabmap::SensorData data(fd.color, fd.depth, model, id, fd.ts);
-            
+
             pcl::PointCloud<pcl::PointXYZRGB>::Ptr local_cloud = rtabmap::util3d::cloudRGBFromSensorData(data, 4, 4.0f, 0.0f);
-            
+
             // Push un-decimated cloud to global map cache
             local_clouds[id] = local_cloud;
 
@@ -128,7 +128,7 @@ int main() {
             for (auto& pair : poses) {
                 int nId = pair.first;
                 rtabmap::Transform pose = pair.second;
-                
+
                 if (local_clouds.count(nId)) {
                     auto cloud = rtabmap::util3d::transformPointCloud(local_clouds[nId], pose);
                     for (const auto& pt : cloud->points) {
@@ -143,7 +143,7 @@ int main() {
                     }
                 }
             }
-            
+
             {
                 std::lock_guard<std::mutex> lock(cloud_mutex);
                 point_cloud = std::move(new_cloud);

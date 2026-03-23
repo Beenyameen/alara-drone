@@ -38,7 +38,7 @@ void main() {
     float b = input_buf.data[in_offset + 5];
 
     uint out_offset = idx * 16;
-    
+
     // Transform3D in Godot 4 MultiMesh is strictly 3 rows of 4 floats (Basis X, Y, Z, Origin) followed by 4 floats of Color.
     // Floats 0-3: Basis.X.x, Basis.Y.x, Basis.Z.x, Origin.x
     // Floats 4-7: Basis.X.y, Basis.Y.y, Basis.Z.y, Origin.y
@@ -68,7 +68,7 @@ void main() {
     output_buf.data[out_offset + 13] = g;
     output_buf.data[out_offset + 14] = b;
     output_buf.data[out_offset + 15] = 1.0;
-    
+
     int y_int = int(-py * 10000.0);
     atomicMin(min_y_buf.min_y_int, y_int);
     atomicMax(max_y_buf.max_y_int, y_int);

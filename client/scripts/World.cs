@@ -10,7 +10,7 @@ public partial class World : Node3D
 	public StaticBody3D Sb;
 	public Player P;
 	public int LastX = int.MinValue, LastZ = int.MinValue;
-	
+
 	public Node3D WorldContent;
 	public float CeilingY = 3.0f;
 	public float CurrentMinY = float.MaxValue;
@@ -75,7 +75,7 @@ public partial class World : Node3D
 		shaderSource.Language = RenderingDevice.ShaderLanguage.Glsl;
 		shaderSource.SourceCompute = FileAccess.GetFileAsString("res://scenes/points.glsl");
 		var shaderSpirV = _rd.ShaderCompileSpirVFromSource(shaderSource);
-		
+
 		if (!string.IsNullOrEmpty(shaderSpirV.CompileErrorCompute))
 		{
 
@@ -95,7 +95,7 @@ public partial class World : Node3D
 			try
 			{
 				using var req = new RequestSocket();
-				req.Connect("tcp://127.0.0.1:15000");
+				req.Connect("tcp://127.0.0.1:15500");
 				
 				while (_runZmq)
 				{
@@ -241,7 +241,7 @@ public partial class World : Node3D
 
 		float[] floats = new float[outputBytes.Length / 4];
 		System.Buffer.BlockCopy(outputBytes, 0, floats, 0, outputBytes.Length);
-		
+
 		if (pointCount > 0)
 		{
 			int minInt = System.BitConverter.ToInt32(minYBytes, 0);
@@ -250,9 +250,9 @@ public partial class World : Node3D
 			{
 				float rawMinY = minInt / 10000.0f;
 				float rawMaxY = maxInt / 10000.0f;
-				
+
 				WorldContent.Position = new Vector3(WorldContent.Position.X, -rawMinY, WorldContent.Position.Z);
-				
+
 				CurrentMinY = 0.0f;
 				CurrentMaxY = rawMaxY - rawMinY;
 
