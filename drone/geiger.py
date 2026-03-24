@@ -29,7 +29,7 @@ def on_radiation_pulse():
 
     payload = struct.pack("!dd", current_time, last_usv)
     try:
-        sock.sendto(payload, ("<broadcast>", 11000))
+        sock.sendto(payload, ("<broadcast>", 10350))
     except Exception:
         pass
 
