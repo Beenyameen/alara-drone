@@ -1,0 +1,11 @@
+[Unit]
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/home/administrator/venv/bin/python -u /home/administrator/geiger.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
