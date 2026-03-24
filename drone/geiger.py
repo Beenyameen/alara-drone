@@ -15,6 +15,7 @@ def on_radiation_pulse():
     global last_usv
     current_time = time.time()
     cpm=-1
+    usv=-1
     print(f"Radiation pulse detected! CPM: {cpm}, USV: {usv}")
     if last_timestamp == -1:
         last_timestamp = current_time
@@ -26,7 +27,7 @@ def on_radiation_pulse():
         last_timestamp = current_time
 
 
-    payload = struct.pack("!dd", time.time(), last_usv)
+    payload = struct.pack("!dd", current_time, last_usv)
     try:
         sock.sendto(payload, ("<broadcast>", 11000))
     except Exception:
