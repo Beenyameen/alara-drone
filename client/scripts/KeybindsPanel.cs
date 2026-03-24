@@ -58,7 +58,7 @@ public partial class KeybindsPanel : VBoxContainer
 		foreach (StringName action in InputMap.GetActions())
 		{
 			string actionName = action.ToString();
-			if (actionName.StartsWith("global_") || actionName.StartsWith("pilot_") || !actionName.StartsWith("ui"))
+			if (actionName.StartsWith("global_") || actionName.StartsWith("pilot_"))
 			{
 				string displayName = actionName.Replace("global_", "").Replace("pilot_", "").Replace("_", " ");
 
