@@ -28,7 +28,13 @@ int main() {
     zmq::socket_t pub2(ctx, ZMQ_PUB);
     pub2.setsockopt(ZMQ_SNDHWM, &hwm, sizeof(hwm));
     pub2.bind("tcp://0.0.0.0:14000");
-    
+
+    // For geiger, only send the latest pose
+    zmq::socket_t pub3(ctx, ZMQ_PUB);
+    pub3.setsockopt(ZMQ_SNDHWM, &hwm, sizeof(hwm));
+    pub3.bind("tcp://0.0.0.0:13001");
+
+
     while (true) {
         zmq::message_t m0, m1, m2;
         sub.recv(&m0);
@@ -70,10 +76,14 @@ int main() {
 
             zmq::message_t out_pose(64);
             memcpy(out_pose.data(), cur.data(), 64);
+            zmq::message_t out_pose_geiger(64);
+            memcpy(out_pose_geiger.data(), cur.data(), 64);
             pub2.send(m0, ZMQ_SNDMORE);
             pub2.send(m1, ZMQ_SNDMORE);
             pub2.send(m2, ZMQ_SNDMORE);
             pub2.send(out_pose);
+
+            pub3.send(out_pose_geiger);
         }
     }
 }

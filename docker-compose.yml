@@ -13,3 +13,17 @@ services:
       - "15500:15500/tcp"
     depends_on:
       - trajectory
+
+
+  geiger:
+    build: ./geiger
+    image: enord-geiger-service
+    environment:
+      - GEIGER_SOURCE_HOST=${GEIGER_SOURCE_HOST:-}
+      - GEIGER_SOURCE_HOSTS=${GEIGER_SOURCE_HOSTS:-}
+      - GEIGER_SOURCE_PORT=${GEIGER_SOURCE_PORT:-10350}
+    ports:
+      - "13075:13075/tcp"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "gateway.docker.internal:host-gateway"
