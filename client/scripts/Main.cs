@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using NetMQ;
 using NetMQ.Sockets;
@@ -15,6 +17,7 @@ public partial class Main : Control
 	public string PiIp;
 	public volatile bool _armToggleRequested = false;
 	public volatile int _armState = -1;
+	private volatile bool _restartInProgress = false;
 
 	public override void _Ready()
 	{
@@ -259,6 +262,7 @@ public partial class Main : Control
 	public override void _Process(double delta)
 	{
 		if (Input.IsActionJustPressed("pilot_arm")) _armToggleRequested = true;
+		if (Input.IsActionJustPressed("global_restart_services")) TryRestartServices();
 		if (Input.IsActionJustPressed("global_select_rgb")) SwitchScene(FeedLayout, Feed.Mode.Rgb);
 		if (Input.IsActionJustPressed("global_select_depth")) SwitchScene(FeedLayout, Feed.Mode.Depth);
 		if (Input.IsActionJustPressed("global_select_world")) SwitchScene(World);
@@ -292,5 +296,76 @@ public partial class Main : Control
 		}
 
 		if (n != World) Input.MouseMode = Input.MouseModeEnum.Visible;
+	}
+
+	private void TryRestartServices()
+	{
+		if (_restartInProgress)
+		{
+			GD.Print("[SERVICES] Restart already in progress, skipping duplicate request");
+			return;
+		}
+
+		_restartInProgress = true;
+		new Thread(() =>
+		{
+			try
+			{
+				string clientDir = ProjectSettings.GlobalizePath("res://");
+				string repoDir = Path.GetFullPath(Path.Combine(clientDir, ".."));
+
+				bool restarted = RunDockerCompose(repoDir, "restart trajectory reconstruction geiger");
+				if (!restarted)
+				{
+					GD.PushWarning("[SERVICES] restart failed, trying up -d fallback");
+					RunDockerCompose(repoDir, "up -d trajectory reconstruction geiger");
+				}
+			}
+			catch (Exception e)
+			{
+				GD.PushError($"[SERVICES] restart exception: {e.Message}");
+			}
+			finally
+			{
+				_restartInProgress = false;
+			}
+		}) { IsBackground = true }.Start();
+	}
+
+	private bool RunDockerCompose(string workingDirectory, string composeArgs)
+	{
+		var psi = new ProcessStartInfo
+		{
+			FileName = "cmd.exe",
+			Arguments = $"/c docker compose {composeArgs}",
+			WorkingDirectory = workingDirectory,
+			UseShellExecute = false,
+			CreateNoWindow = true,
+			RedirectStandardOutput = true,
+			RedirectStandardError = true,
+		};
+
+		using var proc = Process.Start(psi);
+		if (proc == null)
+		{
+			GD.PushError("[SERVICES] failed to launch docker compose process");
+			return false;
+		}
+
+		string stdout = proc.StandardOutput.ReadToEnd();
+		string stderr = proc.StandardError.ReadToEnd();
+		proc.WaitForExit();
+
+		if (!string.IsNullOrWhiteSpace(stdout)) GD.Print($"[SERVICES] {stdout}");
+		if (!string.IsNullOrWhiteSpace(stderr)) GD.PushWarning($"[SERVICES] {stderr}");
+
+		if (proc.ExitCode == 0)
+		{
+			GD.Print($"[SERVICES] docker compose {composeArgs} succeeded");
+			return true;
+		}
+
+		GD.PushWarning($"[SERVICES] docker compose {composeArgs} failed (exit={proc.ExitCode})");
+		return false;
 	}
 }
