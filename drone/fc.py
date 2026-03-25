@@ -64,7 +64,7 @@ LOOP_PERIOD = 1.0 / LOOP_RATE
 
 while True:
     loop_start = time.time()
-    
+
     try:
         msg = rep.recv(flags=zmq.NOBLOCK)
         if msg == b"TOGGLE_ARM":
@@ -76,6 +76,9 @@ while True:
                 rep.send(b"-1")
         elif msg == b"CHECK_ARM":
             rep.send(b"1" if master.motors_armed() else b"0")
+        elif msg == b"RESET":
+            # We can't
+            rep.send(b"-1")
     except zmq.Again:
         pass
 
@@ -100,7 +103,7 @@ while True:
         cur[1] = 1500
         tgt[3] = 1500
         cur[3] = 1500
-        
+
     if time.time() - last_cmd_time > 1.0:
         tgt[2] = 1000
 

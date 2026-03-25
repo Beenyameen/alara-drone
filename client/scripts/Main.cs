@@ -16,6 +16,7 @@ public partial class Main : Control
 	public Vector3 ImuData;
 	public string PiIp;
 	public volatile bool _armToggleRequested = false;
+	public volatile bool _resetRequested = false;
 	public volatile int _armState = -1;
 	private volatile bool _restartInProgress = false;
 
@@ -197,7 +198,21 @@ public partial class Main : Control
 					continue;
 				}
 
-				if (_armToggleRequested)
+				if (_resetRequested)
+				{
+					_resetRequested = false;
+					GD.Print("[FC] Sending RESET");
+					req.SendFrame("RESET");
+					if (req.TryReceiveFrameString(TimeSpan.FromMilliseconds(2000), out string reply))
+					{
+						GD.Print($"[FC] RESET reply: {reply}");
+					}
+					else
+					{
+						GD.Print("[FC] RESET timeout, might be a real drone.");
+					}
+				}
+				else if (_armToggleRequested)
 				{
 					_armToggleRequested = false;
 					GD.Print("[FC] Sending TOGGLE_ARM");
@@ -307,6 +322,7 @@ public partial class Main : Control
 		}
 
 		_restartInProgress = true;
+		_resetRequested = true;
 		new Thread(() =>
 		{
 			try
