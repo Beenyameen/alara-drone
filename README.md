@@ -1,4 +1,4 @@
-# enord
+# alara-drone
 
 ```bash
 docker compose up --build
